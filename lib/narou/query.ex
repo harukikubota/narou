@@ -25,6 +25,10 @@ only import Narou.Query
   ### @param
     - colmuns list(symbol) ： 上記API仕様書の'要素'カラムのキー、または'ofパラメータ'を指定する。
 
+    iexで確認する場合は以下を実行する。
+
+    iex> h Narou.ApiKeyNameConverter
+
   ### EXAMPLE
       use Narou.Query
 

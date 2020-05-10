@@ -4,7 +4,13 @@ defmodule Narou.APIStruct.Rank do
   小説ランキングAPI用データ。
   """
 
-  @rank_types [:d, :w, :m, :q]
+  # ランキングタイプ
+  @rank_types [
+    :d,  # 日
+    :w,  # 週
+    :m,  # 月
+    :q   # 四半期
+  ]
 
   use Narou.APIStruct, where: %{y: 2013, m: 5, d: 1, t: List.first(@rank_types)}, validate: []
 

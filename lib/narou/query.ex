@@ -74,9 +74,10 @@ only import Narou.Query
   """
   @spec where(map, list) :: map | {:error, binary}
   def where(map, kl), do: query_exec(map, :where, kl, &where_by/2)
-  defp where_by(:novel, kl), do: {:ok, &(Map.merge(&1, Map.new(kl)))}
-  defp where_by(:rank,  kl), do: {:ok, &(Map.merge(&1, Map.new(kl)))}
-  defp where_by(type, _),    do: {:error, not_support(type, :where)}
+  defp where_by(:novel,  kl), do: {:ok, &(Map.merge(&1, Map.new(kl)))}
+  defp where_by(:rank,   kl), do: {:ok, &(Map.merge(&1, Map.new(kl)))}
+  defp where_by(:rankin, kl), do: {:ok, &(Map.merge(&1, Map.new(kl)))}
+  defp where_by(type, _),     do: {:error, not_support(type, :where)}
 
   @doc """
       取得したカラムのソート条件を指定する。

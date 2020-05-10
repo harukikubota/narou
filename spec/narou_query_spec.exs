@@ -72,6 +72,22 @@ defmodule NarouQuerySpec do
       it do: expect bad_key() |> to(be_error_result())
       it do: expect bad_type() |> elem(1) |> Enum.at(0) |> elem(3) |> to(have "must be one of [")
     end
+
+    context "rankin good_param" do
+      let :s, do: Narou.init(%{type: :rankin})
+      let :large, do: s() |> where(ncode: "N1234ABC")
+      let :small, do: s() |> where(ncode: "n0956z")
+
+      it do: expect large() |> Map.get(:where) |> to(have ncode: "N1234ABC")
+      it do: expect small() |> Map.get(:where) |> to(have ncode: "n0956z")
+    end
+
+    context "rankin bad_param" do
+      let :bad_ncode, do: Narou.init(%{type: :rankin}) |> where(ncode: "NHOGEHOGE")
+
+      it do: expect bad_ncode() |> to(be_error_result())
+      it do: expect bad_ncode() |> elem(1) |> Enum.at(0) |> elem(3) |> to(eq "invalid NCode `NHOGEHOGE`.")
+    end
   end
 
   describe "order" do

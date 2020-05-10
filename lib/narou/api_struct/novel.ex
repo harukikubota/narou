@@ -25,16 +25,12 @@ defmodule Narou.APIStruct.Novel do
     :old            # 更新が古い順
   ]
 
-  use Narou.APIStruct, limit: 20, st: 1, select: [], where: %{}, order: List.first(@order_types), validate: [:limit, :st]
-
-  validates :select, by: &__MODULE__.valid_select?/1
-  validates :order, inclusion: @order_types
-
-  def valid_select?(cols) do
-    cols |> Enum.all?(&(is_symbol?(&1)))
-  end
-
-  defp is_symbol?(val) do
-    is_atom(val) && Regex.match?(~r/^[a-z]{1,}([a-z\_]*[a-z]{1,})*$/, to_string(val))
-  end
+  use Narou.APIStruct,
+    limit: 20,
+    st: 1,
+    select: [],
+    where: %{},
+    order: List.first(@order_types),
+    validate: [:limit, :st, :select, :order],
+    validate_use_value: [order: @order_types]
 end

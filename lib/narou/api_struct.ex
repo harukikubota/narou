@@ -23,7 +23,7 @@ APIデータの共通処理。
 
       @api_types [:novel, :rank, :rankin]
 
-      {[{:validate, add_validate_cols}], attributes} = Keyword.split(unquote(attributes), [:validate])
+      {validate_info, attributes} = Keyword.split(unquote(attributes), [:validate, :validate_use_value])
 
       [out_type: :json] ++ attributes |> defstruct
 
@@ -35,12 +35,22 @@ APIデータの共通処理。
       validates :type,     inclusion: @api_types
       validates :out_type, inclusion: [:json]
 
+      add_validate_cols = Keyword.get(validate_info, :validate) |> List.wrap()
+
       if Enum.member?(add_validate_cols, :st) do
         validates :st, number: [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]
       end
 
       if Enum.member?(add_validate_cols, :limit) do
         validates :limit, number: [greater_than_or_equal_to: 1,less_than_or_equal_to: 500]
+      end
+
+      if Enum.member?(add_validate_cols, :order) do
+        validates :order, inclusion: Keyword.get(validate_info, :validate_use_value) |> Keyword.get(:order)
+      end
+
+      if Enum.member?(add_validate_cols, :select) do
+        validates :select, by: &valid_select?/1
       end
     end
   end
@@ -59,5 +69,13 @@ APIデータの共通処理。
 
   defp errors(s) do
     Vex.errors(s)
+  end
+
+  def valid_select?(cols) do
+    cols |> Enum.all?(&(is_symbol?(&1)))
+  end
+
+  defp is_symbol?(val) do
+    is_atom(val) && Regex.match?(~r/^[a-z]{1,}([a-z\_]*[a-z]{1,})*$/, to_string(val))
   end
 end

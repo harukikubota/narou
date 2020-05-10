@@ -12,7 +12,7 @@ defmodule Narou.APIStruct.Rank do
     :q   # 四半期
   ]
 
-  use Narou.APIStruct, where: %{y: 2013, m: 5, d: 1, t: List.first(@rank_types)}, validate: []
+  use Narou.APIStruct, where: %{y: 2013, m: 5, d: 1, t: List.first(@rank_types)}
 
   validates :where, by: &__MODULE__.valid_where?/1
 

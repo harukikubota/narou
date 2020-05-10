@@ -62,8 +62,12 @@ defmodule NarouSpec do
       it do: expect s() |> to(have type: :rank)
       it do: expect s() |> to(have where: %{y: 2013, m: 05, d: 01, t: :d})
     end
-  end
 
-  #it do: expect so() |> Map.get(:where) |> to(eq %{y: 2020, m: 05, d: 05, t: :m})
-  #let! :so, do: Narou.init %{type: :rank, y: 2020, m: 05, d: 05, t: :m}
+    context "type rankin good" do
+      let! :s, do: Narou.init %{type: :rankin}
+
+      it do: expect s() |> to(have type: :rankin)
+      it do: expect s() |> to(have where: %{ncode: "N0000A"})
+    end
+  end
 end

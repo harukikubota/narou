@@ -21,7 +21,7 @@ APIデータの共通処理。
       import Narou.APIStruct
       use Vex.Struct
 
-      @api_types [:novel, :rank]
+      @api_types [:novel, :rank, :rankin]
 
       {[{:validate, add_validate_cols}], attributes} = Keyword.split(unquote(attributes), [:validate])
 

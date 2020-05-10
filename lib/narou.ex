@@ -51,8 +51,9 @@ defmodule Narou do
   def init(opt \\ %{type: :novel}) do
     type = Map.get(opt, :type)
     s = case type do
-      :novel -> {:ok, %S.Novel{}}
-      :rank  -> {:ok, %S.Rank{}}
+      :novel  -> {:ok, %S.Novel{}}
+      :rank   -> {:ok, %S.Rank{}}
+      :rankin -> {:ok, %S.Rankin{}}
       _      -> {:error, "Unexpected type `#{type}`."}
     end
 

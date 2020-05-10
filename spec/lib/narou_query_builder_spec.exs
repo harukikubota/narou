@@ -28,12 +28,11 @@ defmodule NarouQueryBuilderSpec do
     end
 
     context "exec query" do
-      let! :s, do: Narou.init(%{type: :novel, limit: 500, st: 2000, out_type: :yaml}) |> select([:t, :w]) |> where(ncode: "n1", userid: 1) |> order(:old) |> Q.build |> shared.expand.()
+      let! :s, do: Narou.init(%{type: :novel, limit: 500, st: 2000}) |> select([:t, :w]) |> where(ncode: "n1", userid: 1) |> order(:old) |> Q.build |> shared.expand.()
 
       it do: expect s() |> to(have uri:    "/novelapi/api")
       it do: expect s() |> to(have lim:    "500")
       it do: expect s() |> to(have st:     "2000")
-      it do: expect s() |> to(have out:    "yaml")
       it do: expect s() |> to(have order:  "old")
       it do: expect s() |> to(have of:     "t-w")
       it do: expect s() |> to(have ncode:  "n1")

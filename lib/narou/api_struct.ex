@@ -22,26 +22,25 @@ APIデータの共通処理。
       use Vex.Struct
 
       @api_types [:novel, :rank]
-      @out_types [:json, :yaml]
 
       {[{:validate, add_validate_cols}], attributes} = Keyword.split(unquote(attributes), [:validate])
 
-      [out_type: List.first(@out_types)] ++ attributes |> defstruct
+      [out_type: :json] ++ attributes |> defstruct
 
       @type type :: :novel, :rank
-      @type out_type :: :json | :yaml
+      @type out_type :: :json
       @type limit :: 1..500
       @type st :: 1..2000
 
       validates :type,     inclusion: @api_types
-      validates :out_type, inclusion: @out_types
+      validates :out_type, inclusion: [:json]
 
       if Enum.member?(add_validate_cols, :st) do
-        validates :st,       number: [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]
+        validates :st, number: [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]
       end
 
       if Enum.member?(add_validate_cols, :limit) do
-        validates :limit,    number: [greater_than_or_equal_to: 1,less_than_or_equal_to: 500]
+        validates :limit, number: [greater_than_or_equal_to: 1,less_than_or_equal_to: 500]
       end
     end
   end

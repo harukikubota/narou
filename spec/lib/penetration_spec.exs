@@ -40,4 +40,18 @@ defmodule PenetrationSpec do
 #      it do: expect rec()      |> to(have rank: 1)
 #    end
 #  end
+#
+#  describe "Rankin" do
+#    context "good" do
+#      before do: {:shared, res: Narou.init(%{type: :rankin}) |> where(ncode: "n2267be") |> Narou.run!}
+#      let! :records, do: shared.res |> elem(1)
+#      let! :rec,     do: shared.res |> elem(1) |> hd
+#
+#      it do: expect shared.res |> to(match_pattern {:ok, _})
+#      it do: expect records() |> length |> to(be :>, 0)
+#      it do: expect rec()               |> to(have pt: 90)
+#      it do: expect rec()               |> to(have rank: 103)
+#      it do: expect rec()               |> to(have rtype: "20130501-d")
+#    end
+#  end
 end

@@ -151,6 +151,8 @@ defmodule Narou do
     end
   end
 
-  defp simple_format!(result, :rank), do: {:ok, each_key_to_atom(result)}
+  defp simple_format!(result, :rank),   do: {:ok, each_key_to_atom(result)}
+  defp simple_format!(result, :rankin), do: {:ok, each_key_to_atom(result)}
+
   defp each_key_to_atom(x), do: Enum.map(x, fn y -> y |> Map.keys |> Enum.map(&(String.to_atom(&1))) |> Enum.zip(Map.values(y)) |> Map.new end)
 end

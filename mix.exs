@@ -20,6 +20,7 @@ defmodule Narou.MixProject do
 
   defp deps do
     [
+      {:distillery, "~> 2.0"},
       {:espec, "~> 1.8.2", only: :test},
       {:httpoison, "~>0.11"},
       {:poison, "~> 1.5"},

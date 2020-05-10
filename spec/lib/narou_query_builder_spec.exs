@@ -49,9 +49,24 @@ defmodule NarouQueryBuilderSpec do
     end
 
     context "exec query" do
-      let :default_queries, do: Narou.init(%{type: :rank}) |> where(y: 2020, m: 12, d: 31, t: :m) |> Q.build |> shared.expand.()
+      let :exec, do: Narou.init(%{type: :rank}) |> where(y: 2020, m: 12, d: 31, t: :m) |> Q.build |> shared.expand.()
 
-      it do: expect default_queries() |> to(have rtype: "20201231-m")
+      it do: expect exec() |> to(have rtype: "20201231-m")
+    end
+  end
+
+  describe "Rankin" do
+    context "default value" do
+      let :default_queries, do: Narou.init(%{type: :rankin}) |> Q.build |> shared.expand.()
+
+      it do: expect default_queries() |> to(have uri:   "/rank/rankin")
+      it do: expect default_queries() |> to(have ncode: "N0000A")
+    end
+
+    context "exec query" do
+      let :exec, do: Narou.init(%{type: :rankin}) |> where(ncode: "n9876z") |> Q.build |> shared.expand.()
+
+      it do: expect exec() |> to(have ncode: "n9876z")
     end
   end
 end

@@ -22,6 +22,7 @@ defmodule Narou.QueryBuilder do
   defp convert_for(_, :out_type, val), do: {:out, convert_val(val)}
   defp convert_for(:novel, :type, _),  do: {:_uri, "/novelapi/api" }
   defp convert_for(:rank, :type, _),   do: {:_uri, "/rank/rankget" }
+  defp convert_for(:rankin, :type, _), do: {:_uri, "/rank/rankin" }
 
   # Novel
   defp convert_for(:novel, :st, val),     do: {:st, convert_val(val)}
@@ -36,6 +37,9 @@ defmodule Narou.QueryBuilder do
 
     {:rtype, (date <> @in_value_delimita <> to_string(rtype))}
   end
+
+  # Rankin
+  defp convert_for(:rankin, :where, %{ncode: ncode}), do: {:ncode, ncode}
 
   defp convert_for(type, not_allowed_key, _), do: raise "Unexpected key `#{not_allowed_key}` for #{type}."
 

@@ -1,6 +1,6 @@
-# NarouWrapper
+# Narou
 
-NarouWrapper is an API wrapper for `小説家になろう`.
+Narou is an API wrapper for `小説家になろう`.
 
 It can be written in `ElixirStyle`.
 

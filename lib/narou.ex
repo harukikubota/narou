@@ -3,11 +3,12 @@ defmodule Narou do
   # 小説家になろうAPIクライアント
 
   ## 対応API
-  - Novel 小説検索
-  - Rank  ランキング検索
+  - Novel  小説検索
+  - Rank   ランキング検索
+  - Rankin 殿堂入り検索
+  - User   ユーザ検索
   """
 
-  alias Narou.ApiKeyNameConverter, as: Converter
   alias Narou.Client
   alias Narou.QueryBuilder
   alias Narou.ResultFormatter, as: Formatter
@@ -54,6 +55,7 @@ defmodule Narou do
       :novel  -> {:ok, %S.Novel{}}
       :rank   -> {:ok, %S.Rank{}}
       :rankin -> {:ok, %S.Rankin{}}
+      :user   -> {:ok, %S.User{}}
       _      -> {:error, "Unexpected type `#{type}`."}
     end
 
@@ -81,7 +83,6 @@ defmodule Narou do
   @spec run!(map) :: {:ok, integer, list(map)} | {:no_data}
   def run!(opt) do
     opt
-    |> Converter.exec
     |> make_uri
     |> send!
     |> decode!
@@ -141,7 +142,14 @@ defmodule Narou do
   defp send!(uri),    do: Client.init() |> Client.run(uri)
   defp decode!(%{status_code: 200, body: body}), do: Poison.decode!(body)
 
-  defp simple_format!(result, :novel) do
+  defp simple_format!(result, type) do
+    case Enum.member?([:novel, :user], type) do
+      true  -> _simple_format(:count, result)
+      false -> _simple_format(:none , result)
+    end
+  end
+
+  defp _simple_format(:count, result) do
     {[%{"allcount" => count}], result} = result |> Enum.split(1)
 
     if count > 0 do
@@ -150,9 +158,7 @@ defmodule Narou do
       {:no_data}
     end
   end
-
-  defp simple_format!(result, :rank),   do: {:ok, each_key_to_atom(result)}
-  defp simple_format!(result, :rankin), do: {:ok, each_key_to_atom(result)}
+  defp _simple_format(:none, result), do: {:ok, each_key_to_atom(result)}
 
   defp each_key_to_atom(x), do: Enum.map(x, fn y -> y |> Map.keys |> Enum.map(&(String.to_atom(&1))) |> Enum.zip(Map.values(y)) |> Map.new end)
 end

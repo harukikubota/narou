@@ -69,5 +69,14 @@ defmodule NarouSpec do
       it do: expect s() |> to(have type: :rankin)
       it do: expect s() |> to(have where: %{ncode: "N0000A"})
     end
+
+    context "type user good" do
+      let! :s,   do: Narou.init %{type: :user}
+
+      it do: expect s()    |> to(have type:   :user)
+      it do: expect s()    |> to(have select: [])
+      it do: expect s()    |> to(have where:  %{})
+      it do: expect s()    |> to(have order:  :new)
+    end
   end
 end

@@ -21,7 +21,7 @@ APIデータの共通処理。
       import Narou.APIStruct
       use Vex.Struct
 
-      @api_types [:novel, :rank, :rankin]
+      @api_types [:novel, :rank, :rankin, :user]
 
       {validate_info, attributes} = Keyword.split(unquote(attributes), [:validate, :validate_use_value])
 
@@ -76,6 +76,6 @@ APIデータの共通処理。
   end
 
   defp is_symbol?(val) do
-    is_atom(val) && Regex.match?(~r/^[a-z]{1,}([a-z\_]*[a-z]{1,})*$/, to_string(val))
+    is_atom(val) && Regex.match?(~r/^[a-z\d]{1,}([a-z\d\_]*[a-z\d]{1,})*$/, to_string(val))
   end
 end

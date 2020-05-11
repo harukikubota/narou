@@ -23,7 +23,7 @@ end
 
 ```elixir
 iex> use Narou
-iex> Narou.init(type: :novel)
+iex> Narou.init(%{type: :novel})
     |> select([:t, :w])
     |> where(ncode: "n2267be")
     |> Narou.run!
@@ -45,7 +45,7 @@ iex> Narou.init(type: :novel)
 
 ```elixir
 iex> use Narou
-iex> Narou.init(type: :rank)
+iex> Narou.init(%{type: :rank})
     |> where((y: 2020, m: 03, d: 31, t: :d)
     |> Narou.run!
 
@@ -57,6 +57,48 @@ iex> Narou.init(type: :rank)
         %{"ncode" => "N2361GC", "pt" => 3698, "rank" => 3},
         %{...},
         ...
+    }
+
+```
+
+### [Rankin Search API](https://dev.syosetu.com/man/rankinapi/)
+
+```elixir
+iex> use Narou
+iex> Narou.init(%{type: :rankin})
+    |> where(ncode: "n2267be")
+    |> Narou.run!
+
+    {:ok,
+      [
+        %{pt: 90, rank: 103, rtype: "20130501-d"},
+        %{pt: 4739, rank: 72, rtype: "20130501-m"},
+        %{pt: 9947, rank: 86, rtype: "20130501-q"},
+        %{...},
+        ...
+    }
+
+```
+
+### [User Search API](https://dev.syosetu.com/man/userapi/)
+
+```elixir
+iex> use Narou
+iex> Narou.init(%{type: :user})
+    |> select([:userid, :name, :yomikata])
+    |> where(userid: 235132)
+    |> Narou.run!
+
+    {
+      :ok,
+      1,
+      [
+        %{
+          name: "鼠色猫/長月達平",
+          userid: 235132,
+          yomikata: "ネズミイロネコ/ナガツキタッペイ"
+        }
+      ]
     }
 
 ```

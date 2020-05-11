@@ -54,4 +54,16 @@ defmodule PenetrationSpec do
 #      it do: expect rec()               |> to(have rtype: "20130501-d")
 #    end
 #  end
+#
+#  describe "User" do
+#    context "good" do
+#      before do: {:shared, res: Narou.init(%{type: :user}) |> select([:userid, :name, :yomikata]) |> where(userid: 235132) |> Narou.run!}
+#      let! :rec, do: shared.res |> elem(2) |> hd
+#
+#      it do: expect shared.res |> to(match_pattern {:ok, 1, _})
+#      it do: expect rec() |> to(have userid:   235132)
+#      it do: expect rec() |> to(have name:     "鼠色猫/長月達平")
+#      it do: expect rec() |> to(have yomikata: "ネズミイロネコ/ナガツキタッペイ")
+#    end
+#  end
 end

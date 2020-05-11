@@ -28,7 +28,7 @@ defmodule NarouQueryBuilderSpec do
     end
 
     context "exec query" do
-      let! :s, do: Narou.init(%{type: :novel, limit: 500, st: 2000}) |> select([:t, :w]) |> where(ncode: "n1", userid: 1) |> order(:old) |> Q.build |> shared.expand.()
+      let! :s, do: Narou.init(%{type: :novel, limit: 500, st: 2000}) |> select([:title, :writer]) |> where(ncode: "n1", userid: 1) |> order(:old) |> Q.build |> shared.expand.()
 
       it do: expect s() |> to(have uri:    "/novelapi/api")
       it do: expect s() |> to(have lim:    "500")
@@ -67,6 +67,25 @@ defmodule NarouQueryBuilderSpec do
       let :exec, do: Narou.init(%{type: :rankin}) |> where(ncode: "n9876z") |> Q.build |> shared.expand.()
 
       it do: expect exec() |> to(have ncode: "n9876z")
+    end
+  end
+
+  describe "User" do
+    context "default value" do
+      let :default_queries, do: Narou.init(%{type: :user}) |> Q.build |> shared.expand.()
+
+      it do: expect default_queries() |> to(have uri:   "/userapi/api")
+      it do: expect default_queries() |> to(have order: "new")
+    end
+
+    context "exec query" do
+      let! :s, do: Narou.init(%{type: :user}) |> select([:userid, :name1st]) |> where(minnovel: 1, maxnovel: 10) |> order(:old) |> Q.build |> shared.expand.()
+
+      it do: expect s() |> to(have uri:      "/userapi/api")
+      it do: expect s() |> to(have order:    "old")
+      it do: expect s() |> to(have of:       "u-1")
+      it do: expect s() |> to(have minnovel: "1")
+      it do: expect s() |> to(have maxnovel: "10")
     end
   end
 end

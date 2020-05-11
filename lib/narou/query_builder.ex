@@ -1,5 +1,7 @@
 defmodule Narou.QueryBuilder do
 
+  alias Narou.ApiKeyNameConverter, as: C
+
   @query_start_str   "?"
   @col_delimita      "&"
   @key_val_delimita  "="
@@ -23,11 +25,12 @@ defmodule Narou.QueryBuilder do
   defp convert_for(:novel, :type, _),  do: {:_uri, "/novelapi/api" }
   defp convert_for(:rank, :type, _),   do: {:_uri, "/rank/rankget" }
   defp convert_for(:rankin, :type, _), do: {:_uri, "/rank/rankin" }
+  defp convert_for(:user, :type, _),   do: {:_uri, "/userapi/api" }
 
   # Novel
   defp convert_for(:novel, :st, val),     do: {:st, convert_val(val)}
   defp convert_for(:novel, :limit, val),  do: {:lim, convert_val(val)}
-  defp convert_for(:novel, :select, val), do: {:of, convert_val(val)}
+  defp convert_for(:novel, :select, val), do: {:of, (val |> C.exec(:novel) |> convert_val) }
   defp convert_for(:novel, :order, val),  do: {:order, convert_val(val)}
   defp convert_for(:novel, :where, val),  do: val |> Enum.map(fn {k, v} -> {k, convert_val(v)} end)
 
@@ -40,6 +43,13 @@ defmodule Narou.QueryBuilder do
 
   # Rankin
   defp convert_for(:rankin, :where, %{ncode: ncode}), do: {:ncode, ncode}
+
+  # User
+  defp convert_for(:user, :st, val),     do: {:st, convert_val(val)}
+  defp convert_for(:user, :limit, val),  do: {:lim, convert_val(val)}
+  defp convert_for(:user, :select, val), do: {:of, (val |> C.exec(:user) |> convert_val) }
+  defp convert_for(:user, :order, val),  do: {:order, convert_val(val)}
+  defp convert_for(:user, :where, val),  do: val |> Enum.map(fn {k, v} -> {k, convert_val(v)} end)
 
   defp convert_for(type, not_allowed_key, _), do: raise "Unexpected key `#{not_allowed_key}` for #{type}."
 

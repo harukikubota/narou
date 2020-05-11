@@ -5,21 +5,15 @@ defmodule NarouApiKeyNameConverterSpec do
 
   describe "exec" do
     context "good" do
-      let :cols, do: Narou.init() |> select([:ncode, :u, :writer]) |> C.exec()
+      let :cols, do: Narou.init() |> select([:ncode, :u, :writer]) |> Map.get(:select) |> C.exec(:novel)
 
-      it do: expect cols() |> to(have select: [:n, :u, :w])
+      it do: expect cols() |> to(eq [:n, :u, :w])
     end
 
     context "can not convert keys" do
-      let :cols, do: Narou.init() |> select([:hoge, :fuga]) |> C.exec()
+      let :cols, do: Narou.init() |> select([:hoge, :fuga]) |> Map.get(:select) |> C.exec(:novel)
 
-      it do: expect cols() |> to(have select: [:hoge, :fuga])
-    end
-
-    context "don't have a `select` column" do
-      let :cols, do: Narou.init(%{type: :rank}) |> C.exec()
-
-      it do: expect cols() |> to(eq cols())
+      it do: expect cols() |> to(eq [:hoge, :fuga])
     end
   end
 end

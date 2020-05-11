@@ -6,6 +6,7 @@ select句に指定する値は下記表を参照。
 
 下記表にない値の場合はそのままとなるので、注意すること。
 
+## Novel
 
   |      full_key     |  api  |     description     |
   |-------------------|-------|---------------------|
@@ -42,7 +43,7 @@ select句に指定する値は下記表を参照。
 
   |  isstop           |   i    |長期連載停止中:1, それ以外:0
 
-  |  isrxv            |   ir   |キーワードに「R15」が含まれる場合:1, それ以外:0 !本来のキー名は`isr15`!
+  |  isr15            |   ir   |キーワードに「R15」が含まれる場合:1, それ以外:0
 
   |  isbl             |   ibl  |キーワードに「ボーイズラブ」が含まれる場合:1, それ以外:0
 
@@ -86,29 +87,46 @@ select句に指定する値は下記表を参照。
 
   |  updated_at       |   ua   |最終更新日時
 
+
+## User
+
+  |      full_key     |  api  |     description     |
+  |-------------------|-------|---------------------|
+
+  |  userid           |   u   | ユーザID
+
+  |  name             |   n   | ユーザ名
+
+  |  yomikata         |   y   | ユーザ名のフリガナ
+
+  |  name1st          |   1   | ユーザ名のフリガナの頭文字, ひらがな以外の場合はnullまたは空文字
+
+  |  novel_cnt        |   nc  | 小説投稿数
+
+  |  review_cnt       |   rc  | レビュー投稿数
+
+  |  novel_length     |   nl  | 小説累計文字数
+
+  |  sum_global_point |   sg  | 総合評価ポイントの合計
+
 """
 
-  @spec exec(map) :: map
-  def exec(map) do
-    case Map.has_key?(map, :select) do
-      false -> map
-      true  ->
-        new_select_cols = Map.get(map, :select) |> Enum.map(&(fetch(&1)))
-        Map.update!(map, :select, fn _ -> new_select_cols end)
-    end
+  @spec exec(atom, list(atom)) :: map
+  def exec(select_cols, type) do
+    select_cols |> Enum.map(&(fetch(&1, type)))
   end
 
-  @spec fetch(atom) :: atom
-  def fetch(key) do
-    val = Map.get key_map(), key
+  @spec fetch(atom, atom) :: atom
+  def fetch(key, type) do
+    val = Map.get key_map(type), key
 
     cond do
-      is_nil(val)  -> key
-      is_atom(val) -> val
+      is_nil(val) -> key
+      true        -> val
     end
   end
 
-  defp key_map do
+  defp key_map(:novel) do
     %{
       title:           :t,
       ncode:           :n,
@@ -126,7 +144,7 @@ select句に指定する値は下記表を参照。
       length:          :l,
       time:            :ti,
       isstop:          :i,
-      isrxv:           :ir,
+      isr15:           :ir,
       isbl:            :ibl,
       isgl:            :igl,
       iszankoku:       :izk,
@@ -148,6 +166,19 @@ select句に指定する値は下記表を参照。
       kaiwaritu:       :ka,
       novelupdated_at: :nu,
       updated_at:      :ua
+    }
+  end
+
+  defp key_map(:user) do
+    %{
+      userid:             :u,
+      name:               :n,
+      yomikata:           :y,
+      name1st:            "1",
+      novel_cnt:          :nc,
+      review_cnt:         :rc,
+      novel_length:       :nl,
+      sum_global_point:   :sg
     }
   end
 end

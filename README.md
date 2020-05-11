@@ -14,6 +14,7 @@ def deps do
     {:narou_wrapper, git: "https://github.com/harukikubota/narou_wrapper"}
   ]
 end
+
 ```
 
 ## Usage

@@ -1,18 +1,17 @@
 # NarouWrapper
 
-`小説家になろう` API client wrapper.
+NarouWrapper is an API wrapper for `小説家になろう`.
 
-It can be written in ElixirStyle.
+It can be written in `ElixirStyle`.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `narou_wrapper` to your list of dependencies in `mix.exs`:
-
 ```elixir
+# mix.exs
+
 def deps do
   [
-    {:narou_wrapper, "~> 0.1.0"}
+    {:narou_wrapper, git: "https://github.com/harukikubota/narou_wrapper"}
   ]
 end
 ```

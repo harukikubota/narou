@@ -23,7 +23,7 @@ defmodule Narou.MixProject do
       {:distillery, "~> 2.0"},
       {:espec, "~> 1.8.2", only: :test},
       {:httpoison, "~>0.11"},
-      {:poison, "~> 1.5"},
+      {:poison, "~> 4.0"},
       {:vex, "~> 0.8"}
     ]
   end

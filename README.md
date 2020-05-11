@@ -11,7 +11,7 @@ It can be written in `ElixirStyle`.
 
 def deps do
   [
-    {:narou_wrapper, git: "https://github.com/harukikubota/narou_wrapper"}
+    {:narou, git: "https://github.com/harukikubota/narou"}
   ]
 end
 
@@ -46,7 +46,7 @@ iex> Narou.init(%{type: :novel})
 ```elixir
 iex> use Narou
 iex> Narou.init(%{type: :rank})
-    |> where((y: 2020, m: 03, d: 31, t: :d)
+    |> where(y: 2020, m: 03, d: 31, t: :d)
     |> Narou.run!
 
     {

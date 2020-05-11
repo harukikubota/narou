@@ -21,6 +21,24 @@ defmodule NarouQuerySpec do
       it do: expect q_atm() |> to(be_error_result())
     end
 
+    context "user good_param" do
+      let :s,      do: Narou.init %{type: :user}
+      let :q_one,  do: s()     |> select(:n)
+      let :q_many, do: q_one() |> select([:u, :y])
+
+      it do: expect q_one()  |> to(have select: [:n])
+      it do: expect q_many() |> to(have select: [:n, :u, :y])
+    end
+
+    context "user bad_param" do
+      let :s,     do: Narou.init %{type: :user}
+      let :q_str, do: s() |> select("hoge")
+      let :q_atm, do: s() |> select(Hoge)
+
+      it do: expect q_str() |> to(be_error_result())
+      it do: expect q_atm() |> to(be_error_result())
+    end
+
     context "not_suppert types" do
       let :rank, do: Narou.init %{type: :rank}
       let :rank_q, do: rank() |> select(:a)
@@ -41,7 +59,7 @@ defmodule NarouQuerySpec do
       it do: expect q_many()  |> Map.get(:where) |> to(have genre:  1)
     end
 
-    context "novel bad_param" , do: # pass
+    # context "novel bad_param" , do: # pass
 
     context "rank good_param" do
       let :s,      do: Narou.init %{type: :rank}
@@ -88,15 +106,45 @@ defmodule NarouQuerySpec do
       it do: expect bad_ncode() |> to(be_error_result())
       it do: expect bad_ncode() |> elem(1) |> Enum.at(0) |> elem(3) |> to(eq "invalid NCode `NHOGEHOGE`.")
     end
+
+    context "user good_param" do
+      let :s,      do: Narou.init %{type: :user}
+      let :q_one,  do: s() |> where(userid: 123456)
+      let :q_many, do: q_one() |> where(name1st: "あ", minnovel: 1)
+
+      it do: expect q_one()   |> Map.get(:where) |> to(have userid: 123456)
+      it do: expect q_many()  |> Map.get(:where) |> to(have name1st: "あ")
+      it do: expect q_many()  |> Map.get(:where) |> to(have minnovel: 1)
+    end
+
+    # context "novel bad_param" , do: # pass
   end
 
   describe "order" do
     context "novel good_param" do
-      let :s,      do: Narou.init %{type: :novel}
+      let :s,        do: Narou.init %{type: :novel}
       let :q_order,  do: s() |> order(:hyoka)
       let :override, do: s() |> order(:old)
 
       it do: expect q_order()  |> to(have order: :hyoka)
+      it do: expect override() |> to(have order: :old)
+    end
+
+    context "novel bad_param" do
+      let :s,       do: Narou.init %{type: :novel}
+      let :bad_key, do: s() |> order(:hoge)
+      let :bad_val, do: s() |> order("hoge")
+
+      it do: expect bad_key() |> to(be_error_result())
+      it do: expect bad_val() |> to(be_error_result())
+    end
+
+    context "user good_param" do
+      let :s,        do: Narou.init %{type: :user}
+      let :q_order,  do: s() |> order(:novelcnt)
+      let :override, do: s() |> order(:old)
+
+      it do: expect q_order()  |> to(have order: :novelcnt)
       it do: expect override() |> to(have order: :old)
     end
 

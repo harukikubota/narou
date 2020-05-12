@@ -24,9 +24,9 @@ defmodule Narou do
       リクエストを送るための初期化処理を行う。
 
   ## @param
-    * type  - API種別を設定する。(:novel, :rank)
-    * limit - 取得するデータの最大件数を設定する。(1..500, default: 20)　(Novelのみ)
-    * st    - 取得するデータの開始位置を設定する。(1..2000, default: 1)　(Novelのみ)
+    * type  - API種別を設定する。(:novel, :rank, :rankin, :user)
+    * limit - 取得するデータの最大件数を設定する。(1..500, default: 20)　(Novel, Userのみ)
+    * st    - 取得するデータの開始位置を設定する。(1..2000, default: 1)　(Novel, Userのみ)
 
   ## Examples
       use Narou
@@ -48,22 +48,14 @@ defmodule Narou do
       }
 
   """
-  @spec init(map) :: %Narou.APIStruct.Novel{} | %Narou.APIStruct.Rank{} | {:error, any}
+  @spec init(map) :: struct | {:error, any}
   def init(opt \\ %{type: :novel}) do
     type = Map.get(opt, :type)
-    s = case type do
-      :novel  -> {:ok, %S.Novel{}}
-      :rank   -> {:ok, %S.Rank{}}
-      :rankin -> {:ok, %S.Rankin{}}
-      :user   -> {:ok, %S.User{}}
-      _      -> {:error, "Unexpected type `#{type}`."}
-    end
 
-    case s do
-      {:error, _} -> s
-      {:ok, s} ->
-        s = Map.merge(s, Map.new(opt))
-        case S.validate(s) do
+    case S.init(type) do
+      {:error, m} -> {:error, m}
+      {:ok, s}    ->
+        case Map.merge(s, Map.new(opt)) |> S.validate() do
           {:ok, v} -> v
           {:error, v} -> {:error, v}
         end

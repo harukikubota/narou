@@ -13,14 +13,12 @@ defmodule NarouSpec do
     context "bad param" do
       let :bad_type, do: Narou.init %{type: :hoge}
       it do: expect bad_type()            |> to(be_error_result())
-      it do: expect bad_type() |> elem(1) |> to(eq "Unexpected type `hoge`.")
     end
 
     context "type novel good" do
       let! :s,   do: Narou.init %{type: :novel}
       let :smin, do: Narou.init %{type: :novel, limit: 1}
       let :smax, do: Narou.init %{type: :novel, limit: 500, st: 2000}
-
 
       it do: expect s()    |> to(have type:   :novel)
       it do: expect s()    |> to(have limit:  20)

@@ -21,18 +21,11 @@ APIデータの共通処理。
       import Narou.APIStruct
       use Vex.Struct
 
-      @api_types [:novel, :rank, :rankin, :user]
-
       {validate_info, attributes} = Keyword.split(unquote(attributes), [:validate, :validate_use_value])
 
       [out_type: :json] ++ attributes |> defstruct
 
-      @type type :: :novel, :rank
-      @type out_type :: :json
-      @type limit :: 1..500
-      @type st :: 1..2000
-
-      validates :type,     inclusion: @api_types
+      validates :type,     inclusion: Narou.APIStruct.api_types
       validates :out_type, inclusion: [:json]
 
       add_validate_cols = Keyword.get(validate_info, :validate) |> List.wrap()
@@ -54,6 +47,26 @@ APIデータの共通処理。
       end
     end
   end
+
+  @spec init(atom) :: struct
+  def init(type) do
+    case type in api_types() do
+      true  -> {:ok, type |> gen_struct }
+      false -> {:error, "Unexpected type `#{type}`."}
+    end
+  end
+
+  defp gen_struct(type) do
+    (to_string(__MODULE__) <> "." <> (to_string(type) |> String.capitalize))
+    |> String.to_atom
+    |> struct
+  end
+
+@doc """
+  対応しているAPIタイプのリスト
+  """
+  @spec api_types() :: list(atom)
+  def api_types(), do: [:novel, :rank, :rankin, :user]
 
   @spec validate(map) :: {:ok, map} | {:error, {:error, any}}
   def validate(s) do

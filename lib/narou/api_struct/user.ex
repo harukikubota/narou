@@ -2,6 +2,17 @@ defmodule Narou.APIStruct.User do
   @moduledoc """
 
   ユーザ検索API用データ。
+
+  ## select
+      iex> h Narou.ApiKeyNameConverter
+
+  ## order
+      :new,            # ユーザIDの新しい順\n
+      :novelcnt,       # 小説投稿数の多い順\n
+      :reviewcnt,      # レビュー投稿数の多い順\n
+      :novellength,    # 小説累計文字数の多い順\n
+      :sumglobalpoint, # 総合評価ポイントの合計の多い順\n
+      :old             # ユーザIDの古い順\n
   """
 
   @order_types [

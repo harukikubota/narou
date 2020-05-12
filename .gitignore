@@ -5,6 +5,7 @@
 .elixir_ls/
 /.fetch
 erl_crash.dump
+/.idea
 *.ez
 *.beam
 narou-*.tar

@@ -25,6 +25,19 @@ defmodule PenetrationSpec do
 #      it do: expect rec() |> hd       |> to(have ncode: "n6169dz")
 #      it do: expect rec() |> tl |> hd |> to(have ncode: "n6458eg")
 #    end
+#
+#    context "maximum_fetch_mode" do
+#      before do: {
+#        :shared,
+#        res: Narou.init(%{type: :novel, maximum_fetch_mode: true}) |> select([:n]) |> Narou.run!
+#      }
+#
+#      let! :response, do: shared.res
+#      let! :uniq_check, do: response() |> elem(2) |> Enum.uniq_by(&(&1.ncode))
+#
+#      it do: expect response()   |> to(match_pattern {:ok, _, _})
+#      it do: expect uniq_check() |> to(have_count 2499)
+#    end
 #  end
 #
 #  describe "Rank" do

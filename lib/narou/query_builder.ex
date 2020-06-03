@@ -9,7 +9,7 @@ defmodule Narou.QueryBuilder do
 
   @spec build(map) :: binary
   def build(map) do
-    map |> Map.drop([:__struct__])
+    map |> Map.drop([:__struct__, :maximum_fetch_mode])
     |> Enum.map(fn {k, v} -> convert_to_queries(Map.get(map, :type), k, v) end)
     |> Enum.flat_map(&(List.wrap(&1)))
     |> to_query

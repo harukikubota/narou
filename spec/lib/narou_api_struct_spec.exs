@@ -4,10 +4,10 @@ defmodule NarouAPIStructSpec do
 
   describe "init" do
     context "good" do
-      let :novel , do: Narou.APIStruct.init(:novel)
-      let :rank  , do: Narou.APIStruct.init(:rank)
-      let :rankin, do: Narou.APIStruct.init(:rankin)
-      let :user  , do: Narou.APIStruct.init(:user)
+      let :novel , do: Narou.APIStruct.init(%{type: :novel})
+      let :rank  , do: Narou.APIStruct.init(%{type: :rank})
+      let :rankin, do: Narou.APIStruct.init(%{type: :rankin})
+      let :user  , do: Narou.APIStruct.init(%{type: :user})
 
       it do: expect novel()  |> to(be_ok_result())
       it do: expect novel()  |> elem(1) |> to(have __struct__: Narou.APIStruct.Novel)
@@ -17,7 +17,7 @@ defmodule NarouAPIStructSpec do
     end
 
     context "bad" do
-      let :bad_type, do: Narou.APIStruct.init(:hoge)
+      let :bad_type, do: Narou.APIStruct.init(%{type: :hoge})
 
       it do: expect bad_type() |> to(be_error_result())
       it do: expect bad_type() |> elem(1) |> to(eq "Unexpected type `hoge`.")

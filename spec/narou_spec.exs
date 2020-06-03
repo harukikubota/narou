@@ -8,6 +8,7 @@ defmodule NarouSpec do
       # check common columns default value.
       it do: expect s() |> to(have type: :novel)
       it do: expect s() |> to(have out_type: :json)
+      it do: expect s() |> to(have maximum_fetch_mode: false)
     end
 
     context "bad param" do
@@ -16,19 +17,22 @@ defmodule NarouSpec do
     end
 
     context "type novel good" do
-      let! :s,   do: Narou.init %{type: :novel}
-      let :smin, do: Narou.init %{type: :novel, limit: 1}
-      let :smax, do: Narou.init %{type: :novel, limit: 500, st: 2000}
+      let! :s,     do: Narou.init %{type: :novel}
+      let :smin,   do: Narou.init %{type: :novel, limit: 1}
+      let :smax,   do: Narou.init %{type: :novel, limit: 500, st: 2000}
+      let :m_mode, do: Narou.init %{type: :novel, maximum_fetch_mode: true}
 
-      it do: expect s()    |> to(have type:   :novel)
-      it do: expect s()    |> to(have limit:  20)
-      it do: expect s()    |> to(have st:     1)
-      it do: expect s()    |> to(have select: [])
-      it do: expect s()    |> to(have where:  %{})
-      it do: expect s()    |> to(have order:  :new)
-      it do: expect smin() |> to(have limit:  1)
-      it do: expect smax() |> to(have limit:  500)
-      it do: expect smax() |> to(have st:     2000)
+      it do: expect s()      |> to(have type:   :novel)
+      it do: expect s()      |> to(have limit:  20)
+      it do: expect s()      |> to(have st:     1)
+      it do: expect s()      |> to(have select: [])
+      it do: expect s()      |> to(have where:  %{})
+      it do: expect s()      |> to(have order:  :new)
+      it do: expect smin()   |> to(have limit:  1)
+      it do: expect smax()   |> to(have limit:  500)
+      it do: expect smax()   |> to(have st:     2000)
+      it do: expect m_mode() |> to(have maximum_fetch_mode: true)
+      it do: expect m_mode() |> to(have limit:  500)
     end
 
     context "type novel bad" do

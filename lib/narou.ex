@@ -24,9 +24,10 @@ defmodule Narou do
       リクエストを送るための初期化処理を行う。
 
   ## @param
-    * type  - API種別を設定する。(:novel, :rank, :rankin, :user)
-    * limit - 取得するデータの最大件数を設定する。(1..500, default: 20)　(Novel, Userのみ)
-    * st    - 取得するデータの開始位置を設定する。(1..2000, default: 1)　(Novel, Userのみ)
+    * type               - API種別を設定する。(:novel, :rank, :rankin, :user)
+    * limit              - 取得するデータの最大件数を設定する。(1..500, default: 20)　(Novel, Userのみ)
+    * st                 - 取得するデータの開始位置を設定する。(1..2000, default: 1)　(Novel, Userのみ)
+    * maximum_fetch_mode - 最大限取得モードで実行する。詳細は`h Narou.run!`を参照。(true, false)
 
   ## Examples
       use Narou
@@ -50,13 +51,11 @@ defmodule Narou do
   """
   @spec init(map) :: struct | {:error, any}
   def init(opt \\ %{type: :novel}) do
-    type = Map.get(opt, :type)
-
-    case S.init(type) do
+    case S.init(opt) do
       {:error, m} -> {:error, m}
       {:ok, s}    ->
-        case Map.merge(s, Map.new(opt)) |> S.validate() do
-          {:ok, v} -> v
+        case s |> S.validate() do
+          {:ok, v}    -> v
           {:error, v} -> {:error, v}
         end
     end
@@ -71,14 +70,70 @@ defmodule Narou do
   ## EXAMPLE
   `init/1`を参照。
 
+  ## 最大件取得モード
+
+  取得できるレコードは1~2499件目となる。
+
+  2500件目以降も取得したい場合は、利用側での制御が必要となる。
+
+  ### EXAMPLE
+
+      ncodes = ["n1111a", "n1111b", ...]
+
+      IO.inspect length(ncodes)
+
+      => 3000
+
+      client = Narou.init(%{type: :novel, maximum_fetch_mode: true})
+
+      Enum.chunk_every(ncodes, 10)
+
+      |> Enum.map(fn _ncodes ->
+
+        client |> where(ncode: _ncodes) |> Narou.run!
+
+      end)
+
+      => [{:ok, 2499, [RESULT, RESULT, ...]}, {:ok, 501, [RESULT, RESULT, ...]}]
+
   """
   @spec run!(map) :: {:ok, integer, list(map)} | {:no_data}
   def run!(opt) do
-    opt
+    result =
+      if opt.maximum_fetch_mode do
+        maximum_fetch(opt, opt.limit)
+      else
+        opt |> exec
+      end
+
+    result |> simple_format!(Map.get(opt, :type))
+  end
+
+  defp maximum_fetch(struct, index \\ 0, limit)
+  defp maximum_fetch(_struct, 5, _limit), do: []
+  defp maximum_fetch(struct, index, limit) do
+    {st, lm} = if index == 0, do: {1, limit - 1}, else: {index * limit, limit}
+
+    {[count_record], fetch_result} =
+      struct
+      |> Map.merge(%{st: st, limit: lm})
+      |> exec()
+      |> Enum.split(1)
+
+    if length(fetch_result) < lm do
+      fetch_result
+    else
+      result = fetch_result ++ maximum_fetch(struct, index + 1, limit)
+
+      if index == 0, do: [count_record | result], else: result
+    end
+  end
+
+  defp exec(struct) do
+    struct
     |> make_uri
     |> send!
     |> decode!
-    |> simple_format!(Map.get(opt, :type))
   end
 
   @doc """
@@ -136,12 +191,12 @@ defmodule Narou do
 
   defp simple_format!(result, type) do
     case Enum.member?([:novel, :user], type) do
-      true  -> _simple_format(:count, result)
+      true  -> _simple_format(:with_count, result)
       false -> _simple_format(:none , result)
     end
   end
 
-  defp _simple_format(:count, result) do
+  defp _simple_format(:with_count, result) do
     {[%{"allcount" => count}], result} = result |> Enum.split(1)
 
     if count > 0 do

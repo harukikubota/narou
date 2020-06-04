@@ -120,13 +120,15 @@ defmodule Narou do
       |> exec()
       |> Enum.split(1)
 
-    if length(fetch_result) < lm do
-      fetch_result
-    else
-      result = fetch_result ++ maximum_fetch(struct, index + 1, limit)
+    to_result = fn ret -> if index == 0, do: [count_record | ret], else: ret end
 
-      if index == 0, do: [count_record | result], else: result
-    end
+    to_result.(
+      if length(fetch_result) < lm do
+        fetch_result
+      else
+        fetch_result ++ maximum_fetch(struct, index + 1, limit)
+      end
+    )
   end
 
   defp exec(struct) do

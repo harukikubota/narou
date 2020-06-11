@@ -11,7 +11,7 @@ It can be written in `ElixirStyle`.
 
 def deps do
   [
-    {:narou, git: "https://github.com/harukikubota/narou"}
+    {:narou, git: "https://github.com/harukikubota/narou.git"}
   ]
 end
 

@@ -12,15 +12,15 @@ defmodule NarouSpec do
     end
 
     context "bad param" do
-      let :bad_type, do: Narou.init %{type: :hoge}
+      let :bad_type, do: Narou.init type: :hoge
       it do: expect bad_type()            |> to(be_error_result())
     end
 
     context "type novel good" do
-      let! :s,     do: Narou.init %{type: :novel}
-      let :smin,   do: Narou.init %{type: :novel, limit: 1}
-      let :smax,   do: Narou.init %{type: :novel, limit: 500, st: 2000}
-      let :m_mode, do: Narou.init %{type: :novel, maximum_fetch_mode: true}
+      let! :s,     do: Narou.init type: :novel
+      let :smin,   do: Narou.init type: :novel, limit: 1
+      let :smax,   do: Narou.init type: :novel, limit: 500, st: 2000
+      let :m_mode, do: Narou.init type: :novel, maximum_fetch_mode: true
 
       it do: expect s()      |> to(have type:   :novel)
       it do: expect s()      |> to(have limit:  20)
@@ -36,11 +36,11 @@ defmodule NarouSpec do
     end
 
     context "type novel bad" do
-      let! :min,            do: Narou.init %{type: :novel, limit: 0, st: 0}
+      let! :min,            do: Narou.init type: :novel, limit: 0, st: 0
       let :limit_error_mes, do: min() |> elem(1) |> Enum.at(0)
       let :st_error_mes,    do: min() |> elem(1) |> Enum.at(1)
 
-      let! :over_max,         do: Narou.init %{type: :novel, limit: 501, st: 2001}
+      let! :over_max,         do: Narou.init type: :novel, limit: 501, st: 2001
       let :limit_o_error_mes, do: over_max() |> elem(1) |> Enum.at(0)
       let :st_o_error_mes,    do: over_max() |> elem(1) |> Enum.at(1)
 
@@ -59,21 +59,21 @@ defmodule NarouSpec do
     end
 
     context "type rank good" do
-      let! :s, do: Narou.init %{type: :rank}
+      let! :s, do: Narou.init type: :rank
 
       it do: expect s() |> to(have type: :rank)
       it do: expect s() |> to(have where: %{y: 2013, m: 05, d: 01, t: :d})
     end
 
     context "type rankin good" do
-      let! :s, do: Narou.init %{type: :rankin}
+      let! :s, do: Narou.init type: :rankin
 
       it do: expect s() |> to(have type: :rankin)
       it do: expect s() |> to(have where: %{ncode: "N0000A"})
     end
 
     context "type user good" do
-      let! :s,   do: Narou.init %{type: :user}
+      let! :s,   do: Narou.init type: :user
 
       it do: expect s()    |> to(have type:   :user)
       it do: expect s()    |> to(have select: [])

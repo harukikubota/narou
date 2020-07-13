@@ -1,4 +1,4 @@
-defmodule Narou.APIStruct.Novel do
+defmodule Narou.Entity.Novel do
 @moduledoc """
 
     小説検索API用データ。
@@ -48,7 +48,7 @@ defmodule Narou.APIStruct.Novel do
     :old            # 更新が古い順
   ]
 
-  use Narou.APIStruct,
+  use Narou.Entity,
     limit: 20,
     st: 1,
     select: [],

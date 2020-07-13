@@ -3,6 +3,7 @@ defmodule Narou.Query do
 クエリ実行モジュール。
 """
 
+  @query_names [:select, :where, :order]
 
 @doc """
 only import Narou.Query
@@ -11,6 +12,54 @@ only import Narou.Query
     quote do
       import Narou.Query
     end
+  end
+
+    @doc """
+      初期化処理を行う。
+
+  ## @param
+    - type symbol  ： APIタイプを指定する。
+    - opt  Keyword ： Narou.init/1, クエリパラメータを指定する。
+
+  ### EXAMPLE
+      use Narou.Query
+
+      # `Narou.init type: :novel, limit: 1, st: 1`と等価なコード
+      from(:novel, limit: 1, st: 1)
+
+      # `Narou.init |> select([:ncode, :userid])`と等価なコード
+      from(:novel, select: [:ncode, :userid])
+
+  ## User
+
+  ### @param
+    - colmuns list(symbol) ： 上記API仕様書の'要素'カラムのキー、または'ofパラメータ'を指定する。
+
+    iexで確認する場合は以下を実行する。
+
+    iex> h Narou.ApiKeyNameConverter
+
+  ### EXAMPLE
+      use Narou.Query
+
+      Narou.init(type: :user) |> select(:name)
+
+      Narou.init(type: :user) |> select([:name, :userid])
+
+  """
+  @spec from(map(), keyword) :: map()
+  def from(type, opt \\ []) do
+    {init_opt, query_opt} = extract_opt(opt)
+
+    querable = Narou.init(init_opt ++ [type: type])
+
+    Enum.reduce(query_opt, querable, fn {query, arg}, querable -> apply(__MODULE__, query, [querable, arg]) end)
+  end
+
+  defp extract_opt(opt) do
+    {query_opt, init_opt} = Keyword.split(opt, @query_names)
+
+    {init_opt, query_opt}
   end
 
   @spec select(map, list) :: map | {:error, binary}
@@ -49,9 +98,9 @@ only import Narou.Query
   ### EXAMPLE
       use Narou.Query
 
-      Narou.init(%{type: :user}) |> select(:name)
+      Narou.init(type: :user) |> select(:name)
 
-      Narou.init(%{type: :user}) |> select([:name, :userid])
+      Narou.init(type: :user) |> select([:name, :userid])
 
   """
   def select(map, columns), do: query_exec(map, :select, List.wrap(columns), &select_by/2)
@@ -84,13 +133,13 @@ only import Narou.Query
     - y integer ： 年を指定する。
     - m integer ： 月を指定する。
     - d integer ： 日を指定する。
-    - t symbol  ： ランキングタイプを指定する。 指定可能な値は Narou.APIStruct.Rank.@rank_types を参照。
+    - t symbol  ： ランキングタイプを指定する。 指定可能な値は Narou.Entity.Rank.@rank_types を参照。
 
   ### EXAMPLE
       use Narou.Query
 
       # 2020/12/31 のデイリーランキング
-      Narou.init(%{type: :rank}) |> where(y: 2020, m: 12, d: 31, t: d)
+      Narou.init(type: :rank) |> where(y: 2020, m: 12, d: 31, t: d)
 
   ## Rankin
   ### @param
@@ -99,7 +148,7 @@ only import Narou.Query
   ### EXAMPLE
       use Narou.Query
 
-      Narou.init(%{type: :rankin}) |> where(ncode: "n2267be")
+      Narou.init(type: :rankin) |> where(ncode: "n2267be")
 
   ## User
   ### @param
@@ -108,12 +157,12 @@ only import Narou.Query
   ### EXAMPLE
       use Narou.Query
 
-      Narou.init(%{type: :user}) |> where(userid: 235132)
+      Narou.init(type: :user) |> where(userid: 235132)
 
   """
   @spec where(map, list) :: map | {:error, binary}
   def where(map, kl),   do: query_exec(map, :where, kl, &where_by/2)
-  defp where_by(_, kl), do: {:ok, &(Map.merge(&1, Map.new(kl)))}
+  defp where_by(_, kl), do: {:ok, &Map.merge(&1, Map.new(kl))}
   # !全てのAPIタイプで共通の処理のため、エラーハンドリングはコメントアウトしている。
   # !whereを使用しないAPIタイプがある場合はコメントアウトをはずす。
   #defp where_by(type, _),     do: {:error, not_support(type, :where)}
@@ -141,7 +190,7 @@ only import Narou.Query
   ### EXAMPLE
       use Narou.Query
 
-      Narou.init(%{type: :user}) |> order(:old)
+      Narou.init(type: :user) |> order(:old)
 
   """
   @spec order(map, atom) :: map | {:error, binary}
@@ -162,5 +211,5 @@ only import Narou.Query
   end
 
   defp not_support(type, query), do: "The API type :#{type} does not support `#{query}` queries."
-  defp validate(s), do: Narou.APIStruct.validate(s)
+  defp validate(s), do: Narou.Entity.validate(s)
 end

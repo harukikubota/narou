@@ -1,6 +1,7 @@
 defmodule Narou.QueryBuilder do
 
   alias Narou.ApiKeyNameConverter, as: C
+  alias Narou.Entity
 
   @query_start_str   "?"
   @col_delimita      "&"
@@ -9,9 +10,10 @@ defmodule Narou.QueryBuilder do
 
   @spec build(map) :: binary
   def build(map) do
-    map |> Map.drop([:__struct__, :maximum_fetch_mode])
+    map
+    |> Entity.to_map_for_build_query()
     |> Enum.map(fn {k, v} -> convert_to_queries(Map.get(map, :type), k, v) end)
-    |> Enum.flat_map(&(List.wrap(&1)))
+    |> Enum.flat_map(&List.wrap/1)
     |> to_query
   end
 
@@ -36,7 +38,7 @@ defmodule Narou.QueryBuilder do
 
   # Rank
   defp convert_for(:rank, :where, %{y: y, m: m, d: d, t: rtype}) do
-    date = [y, m, d] |> Enum.map(&(String.pad_leading(to_string(&1), 2, "0"))) |> Enum.join
+    date = [y, m, d] |> Enum.map(&String.pad_leading(to_string(&1), 2, "0")) |> Enum.join
 
     {:rtype, (date <> @in_value_delimita <> to_string(rtype))}
   end
@@ -62,7 +64,7 @@ defmodule Narou.QueryBuilder do
     {[_uri: uri], params } = query_list |> Keyword.split([:_uri])
 
     query = params
-      |> Enum.map(&(join_col(&1)))
+      |> Enum.map(&join_col/1)
       |> drop_blank_val()
       |> Enum.join(@col_delimita)
 
@@ -78,7 +80,7 @@ defmodule Narou.QueryBuilder do
   defp drop_blank_val(arr) do
     grouped = arr |> Enum.group_by(&String.length/1)
     case Map.has_key?(grouped, 0) do
-      true  -> Map.delete(grouped, 0) |> Map.values |> Enum.map(&(Enum.at(&1,0)))
+      true  -> Map.delete(grouped, 0) |> Map.values |> Enum.map(&Enum.at(&1,0))
       false -> arr
     end
   end

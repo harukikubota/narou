@@ -113,7 +113,7 @@ select句に指定する値は下記表を参照。
 
   @spec exec(atom, list(atom)) :: map
   def exec(select_cols, type) do
-    select_cols |> Enum.map(&(fetch(&1, type)))
+    select_cols |> Enum.map(&fetch(&1, type))
   end
 
   @spec fetch(atom, atom) :: atom

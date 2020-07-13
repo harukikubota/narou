@@ -1,11 +1,11 @@
-defmodule Narou.APIStruct.Rankin do
+defmodule Narou.Entity.Rankin do
   @moduledoc """
 
   小説殿堂入りAPI用データ。
   """
 
   import Narou.Util
-  use Narou.APIStruct, where: %{ncode: "N0000A"}
+  use Narou.Entity, where: %{ncode: "N0000A"}
 
   validates :where, by: &__MODULE__.valid_where?/1
 

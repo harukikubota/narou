@@ -1,4 +1,4 @@
-defmodule Narou.APIStruct do
+defmodule Narou.Entity do
 @moduledoc """
 APIデータの基底モジュール。
 """
@@ -13,22 +13,23 @@ APIデータの共通処理。
 ## EXAMPLE
 
   defmodule MyStruct
-    use Narou.APIStruct, hoge: "", limit: 1, validate: [:limit]
+    use Narou.Entity, hoge: "", limit: 1, validate: [:limit]
   end
 """
   defmacro __using__(attributes) do
     quote do
-      import Narou.APIStruct
+      import Narou.Entity
       use Vex.Struct
 
       {validate_info, attributes} = Keyword.split(unquote(attributes), [:validate, :validate_use_value])
 
       [
+        type: nil,
         out_type: :json,
         maximum_fetch_mode: false
       ] ++ attributes |> defstruct
 
-      validates :type,     inclusion: Narou.APIStruct.api_types
+      validates :type,     inclusion: Narou.Entity.api_types
       validates :out_type, inclusion: [:json]
 
       add_validate_cols = Keyword.get(validate_info, :validate) |> List.wrap()
@@ -48,51 +49,55 @@ APIデータの共通処理。
       if Enum.member?(add_validate_cols, :select) do
         validates :select, by: &valid_select?/1
       end
+
+      def __drop_keys__, do: [:__struct__, :maximum_fetch_mode]
+      defoverridable __drop_keys__: 0
     end
   end
 
-  @spec init(map) :: {:ok, map()} | {:error, binary()}
+  @spec init(keyword()) :: {:ok, map()} | {:error, binary()}
   def init(opt) do
-    {%{type: type}, opt} = Map.split(opt, [:type])
+    {[type: type], opt} = Keyword.split(opt, [:type])
 
     case type in api_types() do
-      true  -> {:ok, type |> gen_struct(opt) }
       false -> {:error, "Unexpected type `#{type}`."}
+      true  ->
+        gen_struct(type, opt)
+        |> validate()
     end
   end
 
   defp gen_struct(type, opt) do
-    (to_string(__MODULE__) <> "." <> (to_string(type) |> String.capitalize))
-    |> String.to_atom
-    |> struct
-    |> Map.merge(%{type: type})
+    to_submodule(type)
+    |> struct(type: type)
     |> patch(opt)
+  end
+
+  defp to_submodule(type) do
+    ("#{__MODULE__}" <> "." <> ("#{type}" |> String.capitalize))
+    |> String.to_atom
   end
 
   defp patch(struct, opt) do
     struct
-    |> patch_st(opt)
-    |> patch_limit(opt)
-    |> patch_maximum_fetch_mode(opt)
+    |> patch_st(Keyword.get(opt, :st))
+    |> patch_limit(Keyword.get(opt, :limit))
+    |> patch_maximum_fetch_mode(Keyword.get(opt, :maximum_fetch_mode))
   end
 
-  defp patch_st(struct, %{st: st}) when is_integer(st) do
-    struct |> Map.merge(%{st: st })
-  end
+  defp patch_st(struct, st) when is_integer(st), do: %{struct | st: st}
   defp patch_st(struct, _), do: struct
 
-  defp patch_limit(struct, %{limit: limit}) when is_integer(limit) do
-    struct |> Map.merge(%{limit: limit})
-  end
+  defp patch_limit(struct, limit) when is_integer(limit), do: %{struct | limit: limit}
   defp patch_limit(struct, _), do: struct
 
-  defp patch_maximum_fetch_mode(struct, %{maximum_fetch_mode: f}) when is_boolean(f) do
-    (if f do
-      struct |> Map.merge(%{limit: 500})
+  defp patch_maximum_fetch_mode(struct, mode) when is_boolean(mode) do
+    (if mode do
+      %{struct | limit: 500}
     else
       struct
     end)
-    |> Map.merge(%{maximum_fetch_mode: f})
+    |> Map.merge(%{maximum_fetch_mode: mode})
   end
   defp patch_maximum_fetch_mode(struct, _), do: struct
 
@@ -119,10 +124,12 @@ APIデータの共通処理。
   end
 
   def valid_select?(cols) do
-    cols |> Enum.all?(&(is_symbol?(&1)))
+    cols |> Enum.all?(&is_symbol?/1)
   end
 
   defp is_symbol?(val) do
     is_atom(val) && Regex.match?(~r/^[a-z\d]{1,}([a-z\d\_]*[a-z\d]{1,})*$/, to_string(val))
   end
+
+  def to_map_for_build_query(entity), do: Map.drop(entity, to_submodule(entity.type).__drop_keys__)
 end

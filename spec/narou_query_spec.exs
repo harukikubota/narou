@@ -2,9 +2,26 @@ defmodule NarouQuerySpec do
   use ESpec
   use Narou.Query
 
+  describe "from" do
+    context "from good_param" do
+      let :q, do: from(:novel)
+      let :with_opt, do: from(:novel, limit: 10, st: 10)
+      let :with_query, do: from(:novel, select: [:t], where: [ncode: "n2267be"], order: :old)
+
+      it do: expect q() |> to(have type: :novel)
+
+      it do: expect with_opt()   |> to(have limit: 10)
+      it do: expect with_opt()   |> to(have st:    10)
+
+      it do: expect with_query() |> to(have select: [:t])
+      it do: expect with_query() |> to(have where:  %{ncode: "n2267be"})
+      it do: expect with_query() |> to(have order:  :old)
+    end
+  end
+
   describe "select" do
     context "novel good_param" do
-      let :s,      do: Narou.init %{type: :novel}
+      let :s,      do: Narou.init type: :novel
       let :q_one,  do: s() |> select(:t)
       let :q_many, do: q_one() |> select([:w, :n])
 
@@ -13,7 +30,7 @@ defmodule NarouQuerySpec do
     end
 
     context "novel bad_param" do
-      let :s,     do: Narou.init %{type: :novel}
+      let :s,     do: Narou.init type: :novel
       let :q_str, do: s() |> select("hoge")
       let :q_atm, do: s() |> select(Hoge)
 
@@ -22,7 +39,7 @@ defmodule NarouQuerySpec do
     end
 
     context "user good_param" do
-      let :s,      do: Narou.init %{type: :user}
+      let :s,      do: Narou.init type: :user
       let :q_one,  do: s()     |> select(:n)
       let :q_many, do: q_one() |> select([:u, :y])
 
@@ -31,7 +48,7 @@ defmodule NarouQuerySpec do
     end
 
     context "user bad_param" do
-      let :s,     do: Narou.init %{type: :user}
+      let :s,     do: Narou.init type: :user
       let :q_str, do: s() |> select("hoge")
       let :q_atm, do: s() |> select(Hoge)
 
@@ -40,7 +57,7 @@ defmodule NarouQuerySpec do
     end
 
     context "not_suppert types" do
-      let :rank, do: Narou.init %{type: :rank}
+      let :rank, do: Narou.init type: :rank
       let :rank_q, do: rank() |> select(:a)
 
       it do: expect rank_q() |> to(be_error_result())
@@ -50,7 +67,7 @@ defmodule NarouQuerySpec do
 
   describe "where" do
     context "novel good_param" do
-      let :s,      do: Narou.init %{type: :novel}
+      let :s,      do: Narou.init type: :novel
       let :q_one,  do: s() |> where(ncode: "n2267be")
       let :q_many, do: q_one() |> where(userid: 1, genre: 1)
 
@@ -62,7 +79,7 @@ defmodule NarouQuerySpec do
     # context "novel bad_param" , do: # pass
 
     context "rank good_param" do
-      let :s,      do: Narou.init %{type: :rank}
+      let :s,      do: Narou.init type: :rank
       let :q_date, do: s() |> where(y: 2020, m: 12, d: 31)
 
       it do: expect q_date()  |> Map.get(:where) |> to(have y: 2020)
@@ -76,7 +93,7 @@ defmodule NarouQuerySpec do
     end
 
     context "rank bad_param" do
-      let :s,        do: Narou.init %{type: :rank}
+      let :s,        do: Narou.init type: :rank
       let :bad_date, do: s() |> where(y: 2020, m: 2, d: 31)
       let :bad_type, do: s() |> where(t: :hoge)
       let :bad_key,  do: s() |> where(hoge: :hoge)
@@ -92,7 +109,7 @@ defmodule NarouQuerySpec do
     end
 
     context "rankin good_param" do
-      let :s, do: Narou.init(%{type: :rankin})
+      let :s, do: Narou.init type: :rankin
       let :large, do: s() |> where(ncode: "N1234ABC")
       let :small, do: s() |> where(ncode: "n0956z")
 
@@ -101,14 +118,14 @@ defmodule NarouQuerySpec do
     end
 
     context "rankin bad_param" do
-      let :bad_ncode, do: Narou.init(%{type: :rankin}) |> where(ncode: "NHOGEHOGE")
+      let :bad_ncode, do: Narou.init(type: :rankin) |> where(ncode: "NHOGEHOGE")
 
       it do: expect bad_ncode() |> to(be_error_result())
       it do: expect bad_ncode() |> elem(1) |> Enum.at(0) |> elem(3) |> to(eq "invalid NCode `NHOGEHOGE`.")
     end
 
     context "user good_param" do
-      let :s,      do: Narou.init %{type: :user}
+      let :s,      do: Narou.init type: :user
       let :q_one,  do: s() |> where(userid: 123456)
       let :q_many, do: q_one() |> where(name1st: "あ", minnovel: 1)
 
@@ -122,7 +139,7 @@ defmodule NarouQuerySpec do
 
   describe "order" do
     context "novel good_param" do
-      let :s,        do: Narou.init %{type: :novel}
+      let :s,        do: Narou.init type: :novel
       let :q_order,  do: s() |> order(:hyoka)
       let :override, do: s() |> order(:old)
 
@@ -131,7 +148,7 @@ defmodule NarouQuerySpec do
     end
 
     context "novel bad_param" do
-      let :s,       do: Narou.init %{type: :novel}
+      let :s,       do: Narou.init type: :novel
       let :bad_key, do: s() |> order(:hoge)
       let :bad_val, do: s() |> order("hoge")
 
@@ -140,7 +157,7 @@ defmodule NarouQuerySpec do
     end
 
     context "user good_param" do
-      let :s,        do: Narou.init %{type: :user}
+      let :s,        do: Narou.init type: :user
       let :q_order,  do: s() |> order(:novelcnt)
       let :override, do: s() |> order(:old)
 
@@ -149,7 +166,7 @@ defmodule NarouQuerySpec do
     end
 
     context "novel bad_param" do
-      let :s,       do: Narou.init %{type: :novel}
+      let :s,       do: Narou.init type: :novel
       let :bad_key, do: s() |> order(:hoge)
       let :bad_val, do: s() |> order("hoge")
 
@@ -158,7 +175,7 @@ defmodule NarouQuerySpec do
     end
 
     context "not_suppert types" do
-      let :rank, do: Narou.init %{type: :rank}
+      let :rank, do: Narou.init type: :rank
       let :rank_q, do: rank() |> order(:not)
 
       it do: expect rank_q() |> to(be_error_result())

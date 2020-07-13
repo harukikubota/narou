@@ -1,4 +1,4 @@
-defmodule Narou.APIStruct.User do
+defmodule Narou.Entity.User do
   @moduledoc """
 
   ユーザ検索API用データ。
@@ -24,7 +24,7 @@ defmodule Narou.APIStruct.User do
     :old             # ユーザIDの古い順
   ]
 
-  use Narou.APIStruct,
+  use Narou.Entity,
     limit: 20,
     st: 1,
     select: [],

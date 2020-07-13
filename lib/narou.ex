@@ -12,7 +12,7 @@ defmodule Narou do
   alias Narou.Client
   alias Narou.QueryBuilder
   alias Narou.ResultFormatter, as: Formatter
-  alias Narou.APIStruct, as: S
+  alias Narou.Entity, as: S
 
   defmacro __using__(_opt) do
     quote do
@@ -49,15 +49,10 @@ defmodule Narou do
       }
 
   """
-  @spec init(map) :: struct | {:error, any}
-  def init(opt \\ %{type: :novel}) do
+  def init(opt \\ [type: :novel]) do
     case S.init(opt) do
+      {:ok, s}    -> s
       {:error, m} -> {:error, m}
-      {:ok, s}    ->
-        case s |> S.validate() do
-          {:ok, v}    -> v
-          {:error, v} -> {:error, v}
-        end
     end
   end
 
@@ -84,7 +79,7 @@ defmodule Narou do
 
       => 3000
 
-      client = Narou.init(%{type: :novel, maximum_fetch_mode: true})
+      client = Narou.init(type: :novel, maximum_fetch_mode: true)
 
       Enum.chunk_every(ncodes, 10)
 
@@ -120,7 +115,7 @@ defmodule Narou do
       |> exec()
       |> Enum.split(1)
 
-    to_result = fn ret -> if index == 0, do: [count_record | ret], else: ret end
+    to_result = &(if index == 0, do: [count_record | &1], else: &1)
 
     to_result.(
       if length(fetch_result) < lm do
@@ -209,5 +204,5 @@ defmodule Narou do
   end
   defp _simple_format(:none, result), do: {:ok, each_key_to_atom(result)}
 
-  defp each_key_to_atom(x), do: Enum.map(x, fn y -> y |> Map.keys |> Enum.map(&(String.to_atom(&1))) |> Enum.zip(Map.values(y)) |> Map.new end)
+  defp each_key_to_atom(x), do: Enum.map(x, fn y -> y |> Map.keys |> Enum.map(&String.to_atom/1) |> Enum.zip(Map.values(y)) |> Map.new end)
 end

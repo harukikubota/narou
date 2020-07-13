@@ -29,7 +29,7 @@ defmodule PenetrationSpec do
 #    context "maximum_fetch_mode" do
 #      before do: {
 #        :shared,
-#        res: Narou.init(%{type: :novel, maximum_fetch_mode: true}) |> select([:n]) |> Narou.run!
+#        res: Narou.init(type: :novel, maximum_fetch_mode: true) |> select([:n]) |> Narou.run!
 #      }
 #
 #      let! :response, do: shared.res
@@ -42,7 +42,7 @@ defmodule PenetrationSpec do
 #
 #  describe "Rank" do
 #    context "good" do
-#      before do: {:shared, res: Narou.init(%{type: :rank}) |> where(y: 2020, m: 3, d: 31, t: :d) |> Narou.run!}
+#      before do: {:shared, res: Narou.init(type: :rank) |> where(y: 2020, m: 3, d: 31, t: :d) |> Narou.run!}
 #      let! :records, do: shared.res |> elem(1)
 #      let! :rec,     do: shared.res |> elem(1) |> hd
 #
@@ -56,7 +56,7 @@ defmodule PenetrationSpec do
 #
 #  describe "Rankin" do
 #    context "good" do
-#      before do: {:shared, res: Narou.init(%{type: :rankin}) |> where(ncode: "n2267be") |> Narou.run!}
+#      before do: {:shared, res: Narou.init(type: :rankin) |> where(ncode: "n2267be") |> Narou.run!}
 #      let! :records, do: shared.res |> elem(1)
 #      let! :rec,     do: shared.res |> elem(1) |> hd
 #
@@ -70,7 +70,7 @@ defmodule PenetrationSpec do
 #
 #  describe "User" do
 #    context "good" do
-#      before do: {:shared, res: Narou.init(%{type: :user}) |> select([:userid, :name, :yomikata]) |> where(userid: 235132) |> Narou.run!}
+#      before do: {:shared, res: Narou.init(type: :user) |> select([:userid, :name, :yomikata]) |> where(userid: 235132) |> Narou.run!}
 #      let! :rec, do: shared.res |> elem(2) |> hd
 #
 #      it do: expect shared.res |> to(match_pattern {:ok, 1, _})

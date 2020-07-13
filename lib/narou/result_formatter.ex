@@ -29,10 +29,7 @@ defmodule Narou.ResultFormatter do
 
   @spec exec(list(map), atom) :: list(map)
   def exec(result, format_mod \\ Narou.ResultFormatter.Default) do
-    result
-    |> Enum.map(fn x ->
-      x |> Enum.map(fn {k,v} -> {k, format_mod.update_by(k, v)} end) |> Map.new
-    end)
+    Enum.map(result, &Enum.map(&1, fn {k,v} -> {k, format_mod.update_by(k, v)} end) |> Map.new)
   end
 
   defmodule Default do

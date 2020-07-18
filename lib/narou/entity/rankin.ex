@@ -13,16 +13,11 @@ defmodule Narou.Entity.Rankin do
     {%{ncode: ncode}, other} = Map.split(map, [:ncode])
 
     cond do
-      map_size(other) > 0 ->
-        keys = Map.keys(other) |> Enum.map(&(":#{&1}")) |> Enum.join(", ")
-        {:error, "Unexpected keys [#{keys}]"}
+      map_size(other) > 0 -> {:error, "Unexpected keys [#{inspect(Map.keys(other))}]"}
 
-      true ->
-        if is_ncode(ncode) do
-          true
-        else
-          {:error, "invalid NCode `#{ncode}`."}
-        end
+      !is_ncode(ncode) -> {:error, "invalid NCode `#{ncode}`."}
+
+      true -> true
     end
   end
 end

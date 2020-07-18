@@ -3,7 +3,7 @@ defmodule NarouQuerySpec do
   use Narou.Query
 
   describe "from" do
-    context "from good_param" do
+    context "from init & exec query" do
       let :q, do: from(:novel)
       let :with_opt, do: from(:novel, limit: 10, st: 10)
       let :with_query, do: from(:novel, select: [:t], where: [ncode: "n2267be"], order: :old)
@@ -16,6 +16,15 @@ defmodule NarouQuerySpec do
       it do: expect with_query() |> to(have select: [:t])
       it do: expect with_query() |> to(have where:  %{ncode: "n2267be"})
       it do: expect with_query() |> to(have order:  :old)
+    end
+
+    context "from extend query" do
+      let! :base_query, do: from(:novel)
+      let! :extended_query, do: from(base_query(), limit: 10, select: :t)
+
+      it do: expect extended_query() |> to(have type: :novel)
+      it do: expect extended_query() |> to(have limit: 10)
+      it do: expect extended_query() |> to(have select: [:t])
     end
   end
 

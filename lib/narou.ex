@@ -12,7 +12,7 @@ defmodule Narou do
   alias Narou.Client
   alias Narou.QueryBuilder
   alias Narou.ResultFormatter, as: Formatter
-  alias Narou.Entity, as: S
+  alias Narou.Entity
 
   defmacro __using__(_opt) do
     quote do
@@ -49,12 +49,7 @@ defmodule Narou do
       }
 
   """
-  def init(opt \\ [type: :novel]) do
-    case S.init(opt) do
-      {:ok, s}    -> s
-      {:error, m} -> {:error, m}
-    end
-  end
+  def init(opt \\ [type: :novel]), do: Entity.init(opt)
 
   @doc """
       APIサーバへリクエストする。

@@ -15,11 +15,11 @@ only import Narou.Query
   end
 
     @doc """
-      初期化処理を行う。
+      Entityの生成、クエリ実行を行う。
 
   ## @param
-    - type symbol  ： APIタイプを指定する。
-    - opt  Keyword ： Narou.init/1, クエリパラメータを指定する。
+    - type_sym_or_querable symbol || %EntitySubModules{} ： APIタイプ、またはEntityStructを指定する。
+    - opt  Keyword ： Narou.init/1に渡すオプション、クエリパラメータを指定する。
 
   ### EXAMPLE
       use Narou.Query
@@ -29,6 +29,15 @@ only import Narou.Query
 
       # `Narou.init |> select([:ncode, :userid])`と等価なコード
       from(:novel, select: [:ncode, :userid])
+
+      # クエリの結合
+      base_query = from :novel, limit: 1
+
+      # fromを使用する場合
+      from base_query, select: :n
+
+      # fromを使用しない場合
+      select(base_query, :n)
 
   ## User
 
@@ -47,19 +56,12 @@ only import Narou.Query
       Narou.init(type: :user) |> select([:name, :userid])
 
   """
-  @spec from(map(), keyword) :: map()
-  def from(type, opt \\ []) do
-    {init_opt, query_opt} = extract_opt(opt)
-
-    querable = Narou.init(init_opt ++ [type: type])
-
-    Enum.reduce(query_opt, querable, fn {query, arg}, querable -> apply(__MODULE__, query, [querable, arg]) end)
-  end
-
-  defp extract_opt(opt) do
+  def from(type_sym_or_querable, opt \\ []) do
     {query_opt, init_opt} = Keyword.split(opt, @query_names)
 
-    {init_opt, query_opt}
+    querable = Narou.Entity.init_or_update(type_sym_or_querable, init_opt)
+
+    Enum.reduce(query_opt, querable, fn {query, arg}, querable -> apply(__MODULE__, query, [querable, arg]) end)
   end
 
   @spec select(map, list) :: map | {:error, binary}
@@ -202,11 +204,7 @@ only import Narou.Query
   defp query_exec(map, fun_key, val, fun) do
     case fun.(Map.get(map, :type), val) do
       {:error, m} -> {:error, m}
-      {:ok, fun}  ->
-        case Map.update!(map, fun_key, &(fun.(&1))) |> validate() do
-          {:ok, s}    -> s
-          {:error, m} -> {:error, m}
-        end
+      {:ok, fun}  -> Map.update!(map, fun_key, &(fun.(&1))) |> validate()
     end
   end
 

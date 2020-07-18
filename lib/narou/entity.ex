@@ -65,14 +65,29 @@ APIデータの共通処理。
       false -> {:error, "Unexpected type `#{type}`."}
       true  ->
         gen_struct(type, opt)
-        |> validate()
+        |> initialized()
+    end
+  end
+
+  defp initialized(querable) do
+    querable
+    |> patch()
+    |> validate()
+  end
+
+  def init_or_update(type_sym_or_querable, opt) do
+    if is_symbol(type_sym_or_querable) do
+      init(opt ++ [type: type_sym_or_querable])
+    else
+      type_sym_or_querable
+      |> Map.merge(Map.new(opt))
+      |> initialized()
     end
   end
 
   defp gen_struct(type, opt) do
     to_submodule(type)
-    |> struct(type: type)
-    |> patch(opt)
+    |> struct(opt ++ [type: type])
   end
 
   defp to_submodule(type) do
@@ -80,20 +95,12 @@ APIデータの共通処理。
     |> String.to_atom
   end
 
-  defp patch(struct, opt) do
+  defp patch(struct) do
     struct
-    |> patch_st(Keyword.get(opt, :st))
-    |> patch_limit(Keyword.get(opt, :limit))
-    |> patch_maximum_fetch_mode(Keyword.get(opt, :maximum_fetch_mode))
+    |> patch_for({:maximum_fetch_mode, Map.get(struct, :maximum_fetch_mode)})
   end
 
-  defp patch_st(struct, st) when is_integer(st), do: %{struct | st: st}
-  defp patch_st(struct, _), do: struct
-
-  defp patch_limit(struct, limit) when is_integer(limit), do: %{struct | limit: limit}
-  defp patch_limit(struct, _), do: struct
-
-  defp patch_maximum_fetch_mode(struct, mode) when is_boolean(mode) do
+  defp patch_for(struct, {:maximum_fetch_mode, mode}) when is_boolean(mode) do
     (if mode do
       %{struct | limit: 500}
     else
@@ -101,7 +108,8 @@ APIデータの共通処理。
     end)
     |> Map.merge(%{maximum_fetch_mode: mode})
   end
-  defp patch_maximum_fetch_mode(struct, _), do: struct
+
+  defp patch_for(struct, _), do: struct
 
 @doc """
   対応しているAPIタイプのリスト
@@ -109,12 +117,9 @@ APIデータの共通処理。
   @spec api_types() :: list(atom)
   def api_types(), do: [:novel, :rank, :rankin, :user]
 
-  @spec validate(map) :: {:ok, map} | {:error, {:error, any}}
+  @spec validate(map) :: map() | {:error, {:error, any}}
   def validate(s) do
-    case valid?(s) do
-      true ->  {:ok, s}
-      false -> {:error, errors(s)}
-    end
+    if valid?(s), do: s, else: {:error, errors(s)}
   end
 
   defp valid?(s) when is_struct(s) do

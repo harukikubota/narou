@@ -3,6 +3,8 @@ defmodule Narou.Entity do
 APIデータの基底モジュール。
 """
 
+  import Narou.Util
+
 @doc """
 APIデータの共通処理。
 
@@ -124,11 +126,7 @@ APIデータの共通処理。
   end
 
   def valid_select?(cols) do
-    cols |> Enum.all?(&is_symbol?/1)
-  end
-
-  defp is_symbol?(val) do
-    is_atom(val) && Regex.match?(~r/^[a-z\d]{1,}([a-z\d\_]*[a-z\d]{1,})*$/, to_string(val))
+    cols |> Enum.all?(&is_symbol/1)
   end
 
   def to_map_for_build_query(entity), do: Map.drop(entity, to_submodule(entity.type).__drop_keys__)

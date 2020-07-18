@@ -39,4 +39,6 @@ UtilityModule.
 
   @spec end_point() :: binary
   def end_point(), do: Narou.Client.init.endpoint
+
+  def is_symbol(val), do: is_atom(val) && Regex.match?(~r/^:.*$/, inspect(val))
 end

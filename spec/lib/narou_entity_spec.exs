@@ -9,11 +9,10 @@ defmodule NarouEntitySpec do
       let :rankin, do: Narou.Entity.init(type: :rankin)
       let :user  , do: Narou.Entity.init(type: :user)
 
-      it do: expect novel()  |> to(be_ok_result())
-      it do: expect novel()  |> elem(1) |> to(have __struct__: Narou.Entity.Novel)
-      it do: expect rank()   |> elem(1) |> to(have __struct__: Narou.Entity.Rank)
-      it do: expect rankin() |> elem(1) |> to(have __struct__: Narou.Entity.Rankin)
-      it do: expect user()   |> elem(1) |> to(have __struct__: Narou.Entity.User)
+      it do: expect novel()  |> to(have __struct__: Narou.Entity.Novel)
+      it do: expect rank()   |> to(have __struct__: Narou.Entity.Rank)
+      it do: expect rankin() |> to(have __struct__: Narou.Entity.Rankin)
+      it do: expect user()   |> to(have __struct__: Narou.Entity.User)
     end
 
     context "bad" do

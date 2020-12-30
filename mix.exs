@@ -8,7 +8,8 @@ defmodule Narou.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       preferred_cli_env: [espec: :test],
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -23,7 +24,15 @@ defmodule Narou.MixProject do
       {:espec, "~> 1.8.2", only: :test},
       {:httpoison, "~> 1.6"},
       {:poison, "~> 4.0"},
-      {:vex, "~> 0.8"}
+      {:vex, "~> 0.8"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+    ]
+  end
+
+  defp aliases do
+    [
+      test: ["dialyzer", "espec"],
+      compile: ["dialyzer", "compile"]
     ]
   end
 end

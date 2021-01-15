@@ -9,17 +9,17 @@ defmodule Narou.MixProject do
       start_permanent: Mix.env() == :prod,
       preferred_cli_env: [espec: :test],
       deps: deps(),
-      aliases: aliases(),
       dialyzer: [
         ignore_warnings: "./dialyzer_ignore.exs",
-        list_unused_filters: false #true
-      ]
+        list_unused_filters: false
+      ],
     ]
   end
 
   def application do
     [
-      applications: [:logger]
+      applications: [:logger],
+      extra_applications: [:vex, :poison, :httpoison]
     ]
   end
 
@@ -30,13 +30,6 @@ defmodule Narou.MixProject do
       {:poison, "~> 4.0"},
       {:vex, "~> 0.8"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-    ]
-  end
-
-  defp aliases do
-    [
-      test: ["dialyzer", "espec"],
-      #compile: ["dialyzer", "compile"]
     ]
   end
 end

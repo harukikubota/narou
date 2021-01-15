@@ -1,18 +1,17 @@
 defmodule Narou.Util do
-@moduledoc """
-UtilityModule.
+  @moduledoc """
+  UtilityModule.
+  """
 
-## EXAMPLE
-
-    iex> alias Narou.Util
-    iex> Util.is_ncode("n0000a")
-    true
-"""
+  @spec is_symbol?(term) :: boolean()
+  def is_symbol?(val) do
+    is_atom(val) && Regex.match?(~r/^[a-z\d]{1,}([a-z\d\_]*[a-z\d]{1,})*$/, to_string(val))
+  end
 
   @doc """
   NCodeのフォーマットかチェックする。
   """
-  @spec is_ncode(binary) :: true | false
+  @spec is_ncode(binary) :: boolean()
   def is_ncode(ncode) do
     Regex.match?(ncode_format(), ncode)
   end

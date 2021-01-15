@@ -9,7 +9,11 @@ defmodule Narou.MixProject do
       start_permanent: Mix.env() == :prod,
       preferred_cli_env: [espec: :test],
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      dialyzer: [
+        ignore_warnings: "./dialyzer_ignore.exs",
+        list_unused_filters: false #true
+      ]
     ]
   end
 
@@ -32,7 +36,7 @@ defmodule Narou.MixProject do
   defp aliases do
     [
       test: ["dialyzer", "espec"],
-      compile: ["dialyzer", "compile"]
+      #compile: ["dialyzer", "compile"]
     ]
   end
 end

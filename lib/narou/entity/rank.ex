@@ -20,13 +20,9 @@ defmodule Narou.Entity.Rank do
     {%{y: year, m: month, d: day, t: type}, other} = Map.split(map, [:y, :m, :d, :t])
 
     cond do
-      map_size(other) > 0 ->
-        keys = Map.keys(other) |> Enum.map(&(":#{&1}")) |> Enum.join(", ")
-        {:error, "Unexpected keys [#{keys}]"}
+      map_size(other) > 0 -> {:error, "Unexpected keys [#{inspect(Map.keys(other))}]"}
 
-      !Enum.member?(@rank_types, type) ->
-        types = @rank_types |> Enum.map(&(":#{&1}")) |> Enum.join(", ")
-        {:error, "must be one of [#{types}]"}
+      !Enum.member?(@rank_types, type) -> {:error, "must be one of [#{inspect(@rank_types)}]"}
 
       true -> case Date.new(year, month, day) do
         {:ok, _}    -> true

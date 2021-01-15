@@ -3,6 +3,8 @@ defmodule Narou.Entity do
 APIデータの基底モジュール。
 """
 
+  import Narou.Util
+
 @doc """
 APIデータの共通処理。
 

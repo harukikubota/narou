@@ -8,13 +8,18 @@ defmodule Narou.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       preferred_cli_env: [espec: :test],
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        ignore_warnings: "./dialyzer_ignore.exs",
+        list_unused_filters: false
+      ],
     ]
   end
 
   def application do
     [
-      applications: [:logger]
+      applications: [:logger],
+      extra_applications: [:vex, :poison, :httpoison]
     ]
   end
 
@@ -23,7 +28,8 @@ defmodule Narou.MixProject do
       {:espec, "~> 1.8.2", only: :test},
       {:httpoison, "~> 1.6"},
       {:poison, "~> 4.0"},
-      {:vex, "~> 0.8"}
+      {:vex, "~> 0.8"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
     ]
   end
 end

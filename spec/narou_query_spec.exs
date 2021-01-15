@@ -3,26 +3,32 @@ defmodule NarouQuerySpec do
   use Narou.Query
 
   describe "from" do
-    context "from good_param" do
-      let :q, do: from(:novel)
-      let :with_opt, do: from(:novel, limit: 10, st: 10)
-      let :with_query, do: from(:novel, select: [:t], where: [ncode: "n2267be"], order: :old)
+    context "from good_param default" do
+      subject do: from :novel
 
-      it do: expect q() |> to(have type: :novel)
+      it do: is_expected() |> to(have type: :novel)
+    end
 
-      it do: expect with_opt()   |> to(have limit: 10)
-      it do: expect with_opt()   |> to(have st:    10)
+    context "from good_param with initialize option" do
+      subject do: from :novel, limit: 10, st: 10
 
-      it do: expect with_query() |> to(have select: [:t])
-      it do: expect with_query() |> to(have where:  %{ncode: "n2267be"})
-      it do: expect with_query() |> to(have order:  :old)
+      it do: is_expected() |> to(have limit: 10)
+      it do: is_expected() |> to(have st:    10)
+    end
+
+    context "from good_param with query" do
+      subject do: from :novel, select: [:t], where: [ncode: "n2267be"], order: :old
+
+      it do: is_expected() |> to(have select: [:t])
+      it do: is_expected() |> to(have where:  %{ncode: "n2267be"})
+      it do: is_expected() |> to(have order:  :old)
     end
   end
 
   describe "select" do
     context "novel good_param" do
-      let :s,      do: Narou.init type: :novel
-      let :q_one,  do: s() |> select(:t)
+      let! :s,     do: from :novel
+      let :q_one,  do: s()     |> select(:t)
       let :q_many, do: q_one() |> select([:w, :n])
 
       it do: expect q_one()  |> to(have select: [:t])
@@ -30,7 +36,7 @@ defmodule NarouQuerySpec do
     end
 
     context "novel bad_param" do
-      let :s,     do: Narou.init type: :novel
+      let! :s,    do: from :novel
       let :q_str, do: s() |> select("hoge")
       let :q_atm, do: s() |> select(Hoge)
 
@@ -39,7 +45,7 @@ defmodule NarouQuerySpec do
     end
 
     context "user good_param" do
-      let :s,      do: Narou.init type: :user
+      let! :s,     do: from :user
       let :q_one,  do: s()     |> select(:n)
       let :q_many, do: q_one() |> select([:u, :y])
 
@@ -48,7 +54,7 @@ defmodule NarouQuerySpec do
     end
 
     context "user bad_param" do
-      let :s,     do: Narou.init type: :user
+      let! :s,    do: from :user
       let :q_str, do: s() |> select("hoge")
       let :q_atm, do: s() |> select(Hoge)
 
@@ -57,18 +63,16 @@ defmodule NarouQuerySpec do
     end
 
     context "not_suppert types" do
-      let :rank, do: Narou.init type: :rank
-      let :rank_q, do: rank() |> select(:a)
+      subject do: from(:rank) |> select(:a)
 
-      it do: expect rank_q() |> to(be_error_result())
-      it do: expect rank_q() |> elem(1) |> to(eq "The API type :rank does not support `select` queries.")
+      it do: is_expected() |> to(match_pattern {:error, "The API type :rank does not support `select` queries."})
     end
   end
 
   describe "where" do
     context "novel good_param" do
-      let :s,      do: Narou.init type: :novel
-      let :q_one,  do: s() |> where(ncode: "n2267be")
+      let! :s,     do: from :novel
+      let :q_one,  do: s()     |> where(ncode: "n2267be")
       let :q_many, do: q_one() |> where(userid: 1, genre: 1)
 
       it do: expect q_one()   |> Map.get(:where) |> to(have ncode:  "n2267be")
@@ -79,7 +83,7 @@ defmodule NarouQuerySpec do
     # context "novel bad_param" , do: # pass
 
     context "rank good_param" do
-      let :s,      do: Narou.init type: :rank
+      let :s,      do: from :rank
       let :q_date, do: s() |> where(y: 2020, m: 12, d: 31)
 
       it do: expect q_date()  |> Map.get(:where) |> to(have y: 2020)
@@ -93,23 +97,18 @@ defmodule NarouQuerySpec do
     end
 
     context "rank bad_param" do
-      let :s,        do: Narou.init type: :rank
+      let! :s,       do: from :rank
       let :bad_date, do: s() |> where(y: 2020, m: 2, d: 31)
       let :bad_type, do: s() |> where(t: :hoge)
       let :bad_key,  do: s() |> where(hoge: :hoge)
 
-      it do: expect bad_date() |> to(be_error_result())
-      it do: expect bad_date() |> elem(1) |> Enum.at(0) |> elem(3) |> to(eq "invalid date.")
-
-      it do: expect bad_type() |> to(be_error_result())
-      it do: expect bad_type() |> elem(1) |> Enum.at(0) |> elem(3) |> to(have "must be one of [")
-
-      it do: expect bad_key() |> to(be_error_result())
-      it do: expect bad_type() |> elem(1) |> Enum.at(0) |> elem(3) |> to(have "must be one of [")
+      it do: expect bad_date() |> to(match_pattern {:error, [{:error, :where, :by, "invalid date."}]})
+      it do: expect bad_type() |> to(match_pattern {:error, [{:error, :where, :by, "must be one of [:d, :w, :m, :q]"}]})
+      it do: expect bad_key()  |> to(match_pattern {:error, [{:error, :where, :by, "Unexpected keys [:hoge]"}]})
     end
 
     context "rankin good_param" do
-      let :s, do: Narou.init type: :rankin
+      let! :s,    do: from :rankin
       let :large, do: s() |> where(ncode: "N1234ABC")
       let :small, do: s() |> where(ncode: "n0956z")
 
@@ -118,15 +117,14 @@ defmodule NarouQuerySpec do
     end
 
     context "rankin bad_param" do
-      let :bad_ncode, do: Narou.init(type: :rankin) |> where(ncode: "NHOGEHOGE")
+      subject do: from(:rankin) |> where(ncode: "NHOGEHOGE")
 
-      it do: expect bad_ncode() |> to(be_error_result())
-      it do: expect bad_ncode() |> elem(1) |> Enum.at(0) |> elem(3) |> to(eq "invalid NCode `NHOGEHOGE`.")
+      it do: is_expected() |> to(match_pattern {:error, [{:error, :where, :by, "invalid NCode `NHOGEHOGE`."}]})
     end
 
     context "user good_param" do
-      let :s,      do: Narou.init type: :user
-      let :q_one,  do: s() |> where(userid: 123456)
+      let! :s,     do: from :user
+      let :q_one,  do: s()     |> where(userid: 123456)
       let :q_many, do: q_one() |> where(name1st: "あ", minnovel: 1)
 
       it do: expect q_one()   |> Map.get(:where) |> to(have userid: 123456)
@@ -134,21 +132,21 @@ defmodule NarouQuerySpec do
       it do: expect q_many()  |> Map.get(:where) |> to(have minnovel: 1)
     end
 
-    # context "novel bad_param" , do: # pass
+    # context "user bad_param" , do: # pass
   end
 
   describe "order" do
     context "novel good_param" do
-      let :s,        do: Narou.init type: :novel
-      let :q_order,  do: s() |> order(:hyoka)
-      let :override, do: s() |> order(:old)
+      let! :s,        do: from :novel
+      let :q_order,   do: s() |> order(:hyoka)
+      let :overrided, do: s() |> order(:old)
 
-      it do: expect q_order()  |> to(have order: :hyoka)
-      it do: expect override() |> to(have order: :old)
+      it do: expect q_order()   |> to(have order: :hyoka)
+      it do: expect overrided() |> to(have order: :old)
     end
 
     context "novel bad_param" do
-      let :s,       do: Narou.init type: :novel
+      let! :s,      do: from :novel
       let :bad_key, do: s() |> order(:hoge)
       let :bad_val, do: s() |> order("hoge")
 
@@ -157,16 +155,16 @@ defmodule NarouQuerySpec do
     end
 
     context "user good_param" do
-      let :s,        do: Narou.init type: :user
-      let :q_order,  do: s() |> order(:novelcnt)
-      let :override, do: s() |> order(:old)
+      let! :s,        do: from :user
+      let :q_order,   do: s() |> order(:novelcnt)
+      let :overrided, do: s() |> order(:old)
 
-      it do: expect q_order()  |> to(have order: :novelcnt)
-      it do: expect override() |> to(have order: :old)
+      it do: expect q_order()   |> to(have order: :novelcnt)
+      it do: expect overrided() |> to(have order: :old)
     end
 
     context "novel bad_param" do
-      let :s,       do: Narou.init type: :novel
+      let! :s,      do: from :novel
       let :bad_key, do: s() |> order(:hoge)
       let :bad_val, do: s() |> order("hoge")
 
@@ -175,11 +173,9 @@ defmodule NarouQuerySpec do
     end
 
     context "not_suppert types" do
-      let :rank, do: Narou.init type: :rank
-      let :rank_q, do: rank() |> order(:not)
+      subject do: from(:rank) |> order(:not)
 
-      it do: expect rank_q() |> to(be_error_result())
-      it do: expect rank_q() |> elem(1) |> to(eq "The API type :rank does not support `order` queries.")
+      it do: is_expected() |> to(match_pattern {:error, "The API type :rank does not support `order` queries."})
     end
   end
 end

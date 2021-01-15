@@ -14,10 +14,8 @@ defmodule NarouUtilSpec do
     end
   end
 
-  # TODO Elixirのバージョンをあげたときに修正する
-  # is_regex/2
   describe "ncode_format" do
-    it do: expect ncode_format() |> to(have __struct__: Regex)
+    it do: expect ncode_format() |> is_struct(Regex) |> to(be_truthy())
   end
 
   describe "make_api_url" do

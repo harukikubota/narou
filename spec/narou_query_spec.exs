@@ -23,6 +23,15 @@ defmodule NarouQuerySpec do
       it do: is_expected() |> to(have where:  %{ncode: "n2267be"})
       it do: is_expected() |> to(have order:  :old)
     end
+
+    context "from extend query" do
+      let! :base_query, do: from(:novel)
+      let! :extended_query, do: from(base_query(), limit: 10, select: :t)
+
+      it do: expect extended_query() |> to(have type: :novel)
+      it do: expect extended_query() |> to(have limit: 10)
+      it do: expect extended_query() |> to(have select: [:t])
+    end
   end
 
   describe "select" do

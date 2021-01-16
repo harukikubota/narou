@@ -1,7 +1,7 @@
 defmodule NarouQueryBuilderSpec do
   use ESpec
   alias Narou.QueryBuilder, as: Q
-  import Narou.Query
+  use Narou.Query
 
   before do: {
     :shared,
@@ -18,78 +18,74 @@ defmodule NarouQueryBuilderSpec do
 
   describe "Novel" do
     context "default value" do
-      subject do: from(:novel) |> Q.build |> shared.expand.()
+      let :default_queries, do: Narou.init(type: :novel) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have uri:   "/novelapi/api")
-      it do: is_expected() |> to(have lim:   "20")
-      it do: is_expected() |> to(have order: "new")
-      it do: is_expected() |> to(have st:    "1")
-      it do: is_expected() |> to(have out:   "json")
+      it do: expect default_queries() |> to(have uri:   "/novelapi/api")
+      it do: expect default_queries() |> to(have lim:   "20")
+      it do: expect default_queries() |> to(have order: "new")
+      it do: expect default_queries() |> to(have st:    "1")
+      it do: expect default_queries() |> to(have out:   "json")
     end
 
     context "exec query" do
-      subject do
-        from(:novel, limit: 500, st: 2000, select: [:title, :writer], where: [ncode: "n1", userid: 1], order: :old)
-        |> Q.build
-        |> shared.expand.()
-      end
+      let! :s, do: Narou.init(type: :novel, limit: 500, st: 2000) |> select([:title, :writer]) |> where(ncode: "n1", userid: 1) |> order(:old) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have uri:    "/novelapi/api")
-      it do: is_expected() |> to(have lim:    "500")
-      it do: is_expected() |> to(have st:     "2000")
-      it do: is_expected() |> to(have order:  "old")
-      it do: is_expected() |> to(have of:     "t-w")
-      it do: is_expected() |> to(have ncode:  "n1")
-      it do: is_expected() |> to(have userid: "1")
+      it do: expect s() |> to(have uri:    "/novelapi/api")
+      it do: expect s() |> to(have lim:    "500")
+      it do: expect s() |> to(have st:     "2000")
+      it do: expect s() |> to(have order:  "old")
+      it do: expect s() |> to(have of:     "t-w")
+      it do: expect s() |> to(have ncode:  "n1")
+      it do: expect s() |> to(have userid: "1")
     end
   end
 
   describe "Rank" do
     context "default value" do
-      subject do: from(:rank) |> Q.build |> shared.expand.()
+      let :default_queries, do: Narou.init(type: :rank) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have uri:   "/rank/rankget")
-      it do: is_expected() |> to(have rtype: "20130501-d")
+      it do: expect default_queries() |> to(have uri:   "/rank/rankget")
+      it do: expect default_queries() |> to(have rtype: "20130501-d")
     end
 
     context "exec query" do
-      subject do: from(:rank, where: [y: 2020, m: 12, d: 31, t: :m]) |> Q.build |> shared.expand.()
+      let :exec, do: Narou.init(type: :rank) |> where(y: 2020, m: 12, d: 31, t: :m) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have rtype: "20201231-m")
+      it do: expect exec() |> to(have rtype: "20201231-m")
     end
   end
 
   describe "Rankin" do
     context "default value" do
-      subject do: from(:rankin) |> Q.build |> shared.expand.()
+      let :default_queries, do: Narou.init(type: :rankin) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have uri:   "/rank/rankin")
-      it do: is_expected() |> to(have ncode: "N0000A")
+      it do: expect default_queries() |> to(have uri:   "/rank/rankin")
+      it do: expect default_queries() |> to(have ncode: "N0000A")
     end
 
     context "exec query" do
-      subject do: from(:rankin, where: [ncode: "n9876z"]) |> Q.build |> shared.expand.()
+      let :exec, do: Narou.init(type: :rankin) |> where(ncode: "n9876z") |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have ncode: "n9876z")
+      it do: expect exec() |> to(have ncode: "n9876z")
     end
   end
 
   describe "User" do
     context "default value" do
-      subject do: from(:user) |> Q.build |> shared.expand.()
+      let :default_queries, do: Narou.init(type: :user) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have uri:   "/userapi/api")
-      it do: is_expected() |> to(have order: "new")
+      it do: expect default_queries() |> to(have uri:   "/userapi/api")
+      it do: expect default_queries() |> to(have order: "new")
     end
 
     context "exec query" do
-      subject do: from(:user, select: [:userid, :name1st], where: [minnovel: 1, maxnovel: 10], order: :old) |> Q.build |> shared.expand.()
+      let! :s, do: Narou.init(type: :user) |> select([:userid, :name1st]) |> where(minnovel: 1, maxnovel: 10) |> order(:old) |> Q.build |> shared.expand.()
 
-      it do: is_expected() |> to(have uri:      "/userapi/api")
-      it do: is_expected() |> to(have order:    "old")
-      it do: is_expected() |> to(have of:       "u-1")
-      it do: is_expected() |> to(have minnovel: "1")
-      it do: is_expected() |> to(have maxnovel: "10")
+      it do: expect s() |> to(have uri:      "/userapi/api")
+      it do: expect s() |> to(have order:    "old")
+      it do: expect s() |> to(have of:       "u-1")
+      it do: expect s() |> to(have minnovel: "1")
+      it do: expect s() |> to(have maxnovel: "10")
     end
   end
 end

@@ -89,26 +89,25 @@ defmodule Narou do
   """
   @spec run!(map) :: {:ok, integer, list(map)} | {:no_data}
   def run!(opt) do
-    strategy =
+    result =
       if opt.maximum_fetch_mode do
-        fn -> maximum_fetch(opt) end
+        maximum_fetch(opt, opt.limit)
       else
-        fn -> fetch(opt) end
+        opt |> exec
       end
 
-    simple_format!(strategy.(), Map.get(opt, :type))
+    result |> simple_format!(Map.get(opt, :type))
   end
 
-  defp maximum_fetch(struct), do: do_maximum_fetch(struct, 0, struct.limit)
-
-  defp do_maximum_fetch(_struct, 5, _limit), do: []
-  defp do_maximum_fetch(struct, index, limit) do
+  defp maximum_fetch(struct, index \\ 0, limit)
+  defp maximum_fetch(_struct, 5, _limit), do: []
+  defp maximum_fetch(struct, index, limit) do
     {st, lm} = if index == 0, do: {1, limit - 1}, else: {index * limit, limit}
 
     {[count_record], fetch_result} =
       struct
       |> Map.merge(%{st: st, limit: lm})
-      |> fetch()
+      |> exec()
       |> Enum.split(1)
 
     to_result = &(if index == 0, do: [count_record | &1], else: &1)
@@ -117,12 +116,12 @@ defmodule Narou do
       if length(fetch_result) < lm do
         fetch_result
       else
-        fetch_result ++ do_maximum_fetch(struct, index + 1, limit)
+        fetch_result ++ maximum_fetch(struct, index + 1, limit)
       end
     )
   end
 
-  defp fetch(struct) do
+  defp exec(struct) do
     struct
     |> make_uri
     |> send!
@@ -156,10 +155,10 @@ defmodule Narou do
       }
 
   """
-  @spec format({:ok, integer, [map()]}) :: {:ok, integer, [map()]}
+  @spec format({:ok, integer, list(map)}) :: {:ok, integer, map}
   def format({:ok, count, result}), do: {:ok, count, (result |> Formatter.exec())}
 
-  @spec format({:ok, map()}) :: {:ok, map()}
+  @spec format({:ok, list(map)}) :: {:ok, map}
   def format({:ok, result}), do: {:ok, (result |> Formatter.exec())}
 
   @doc """
@@ -179,15 +178,14 @@ defmodule Narou do
   end
 
   defp make_uri(map), do: QueryBuilder.build(map)
-
   defp send!(uri),    do: Client.init() |> Client.run(uri)
-
   defp decode!(%{status_code: 200, body: body}), do: Poison.decode!(body)
 
   defp simple_format!(result, type) do
-    opt = if(Enum.member?([:novel, :user], type), do: :with_count, else: :none)
-
-    _simple_format(opt, result)
+    case Enum.member?([:novel, :user], type) do
+      true  -> _simple_format(:with_count, result)
+      false -> _simple_format(:none , result)
+    end
   end
 
   defp _simple_format(:with_count, result) do

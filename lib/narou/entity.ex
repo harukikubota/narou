@@ -58,30 +58,42 @@ APIデータの共通処理。
     {[type: type], opt} = Keyword.split(opt, [:type])
 
     if type in api_types() do
-      gen_struct(type, opt) |> validate()
+      gen_struct(type, opt)
+      |> initialized()
     else
       {:error, "Unexpected type `#{type}`."}
     end
   end
 
+  def init_or_update(type_sym_or_querable, opt) do
+    if is_symbol?(type_sym_or_querable) do
+      init(opt ++ [type: type_sym_or_querable])
+    else
+      type_sym_or_querable
+      |> Map.merge(Map.new(opt))
+      |> initialized()
+    end
+  end
+
   defp gen_struct(type, opt) do
     to_submodule_name(type)
-    |> struct(type: type)
-    |> patch(opt)
+    |> struct([type: type] ++ opt)
+  end
+
+  defp initialized(querable) do
+    querable
+    |> patch()
+    |> validate()
   end
 
   defp to_submodule_name(type), do: Module.concat(__MODULE__, type |> to_string |> Macro.camelize |> String.to_atom)
 
-  defp patch(struct, opt), do: Enum.reduce([:st, :limit, :maximum_fetch_mode], struct, &do_patch(&1, &2, opt[&1]))
+  defp patch(struct), do: Enum.reduce([:maximum_fetch_mode], struct, &do_patch(&1, &2, Map.fetch!(struct, &1)))
 
-  defp do_patch(:st,                 struct, st)    when is_integer(st),    do: %{struct | st: st}
-  defp do_patch(:limit,              struct, limit) when is_integer(limit), do: %{struct | limit: limit}
   defp do_patch(:maximum_fetch_mode, struct, mode)  when is_boolean(mode) do
     if(mode, do: %{struct | limit: 500}, else: struct) |> Map.merge(%{maximum_fetch_mode: mode})
   end
 
-  defp do_patch(:st,                 struct, _), do: struct
-  defp do_patch(:limit,              struct, _), do: struct
   defp do_patch(:maximum_fetch_mode, struct, _), do: struct
 
   @doc """
@@ -90,8 +102,8 @@ APIデータの共通処理。
   @spec api_types() :: list(atom)
   def api_types(), do: [:novel, :rank, :rankin, :user]
 
-  @spec validate(map) :: {:ok, map} | {:error, {:error, any}}
-  def validate(s), do: if valid?(s), do: {:ok, s}, else: {:error, errors(s)}
+  @spec validate(struct()) :: struct() | {:error, [any()]}
+  def validate(s), do: if valid?(s), do: s, else: {:error, errors(s)}
 
   defp valid?(s) when is_struct(s), do: s.__struct__.valid?(s)
 

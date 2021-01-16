@@ -11,13 +11,18 @@ defmodule Narou.Client do
     %__MODULE__{endpoint: endpoint}
   end
 
-  @spec run(%__MODULE__{}, binary) :: map
+  @spec run(%__MODULE__{}, binary) :: {:ok, any} | {:error, any}
   def run(client, query) do
-    Kernel.<>(client.endpoint, query)
-    |> (fn url -> Logger.debug "from Narou.Client request to `#{url}'"; url end).()
+    logging_url = fn url ->
+                    Logger.debug "from Narou.Client request to `#{url}'"
+                    url
+                  end
+
+    url(client.endpoint, query)
+    |> logging_url.()
     |> send!
   end
-
+  defp url(ep, q), do: ep <> q
   defp send!(url) do
     try do
       @http_client.get!(url, [], [recv_timeout: 3000])

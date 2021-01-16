@@ -4,7 +4,7 @@ defmodule Narou.MixProject do
   def project do
     [
       app: :narou,
-      version: "0.2.6",
+      version: "0.2.7",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       preferred_cli_env: [espec: :test],

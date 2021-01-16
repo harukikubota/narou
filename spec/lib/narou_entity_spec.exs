@@ -1,6 +1,5 @@
 defmodule NarouEntitySpec do
   use ESpec
-  #alias Narou.Entity, as: S
 
   describe "init" do
     context "good" do
@@ -9,27 +8,23 @@ defmodule NarouEntitySpec do
       let :rankin, do: Narou.Entity.init(type: :rankin)
       let :user  , do: Narou.Entity.init(type: :user)
 
-      it do: expect novel()  |> to(have __struct__: Narou.Entity.Novel)
-      it do: expect rank()   |> to(have __struct__: Narou.Entity.Rank)
-      it do: expect rankin() |> to(have __struct__: Narou.Entity.Rankin)
-      it do: expect user()   |> to(have __struct__: Narou.Entity.User)
+      it do: expect novel()  |> to(match_pattern %Narou.Entity.Novel{})
+      it do: expect rank()   |> to(match_pattern %Narou.Entity.Rank{})
+      it do: expect rankin() |> to(match_pattern %Narou.Entity.Rankin{})
+      it do: expect user()   |> to(match_pattern %Narou.Entity.User{})
     end
 
     context "bad" do
-      let :bad_type, do: Narou.Entity.init(type: :hoge)
-
-      it do: expect bad_type() |> to(be_error_result())
-      it do: expect bad_type() |> elem(1) |> to(eq "Unexpected type `hoge`.")
+      subject do: Narou.Entity.init(type: :hoge)
+      it do: is_expected() |> to(match_pattern {:error, "Unexpected type `hoge`."})
     end
   end
 
   describe "to_map_for_build_query" do
-    let :entity, do: Narou.init(type: :novel) |> Narou.Entity.to_map_for_build_query
+    subject do: Narou.init(type: :novel) |> Narou.Entity.to_map_for_build_query
 
-    # Enumerableかどうかのチェック
-    it do: expect entity() |> Enum.each(&(&1)) |> to(eq :ok)
-
-    it do: expect entity() |> Map.has_key?(:__struct__)         |> to(be_false())
-    it do: expect entity() |> Map.has_key?(:maximum_fetch_mode) |> to(be_false())
+    it do: is_expected() |> to(be_map())
+    it do: is_expected() |> not_to(have :__struct__)
+    it do: is_expected() |> not_to(have :maximum_fetch_mode)
   end
 end

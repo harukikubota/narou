@@ -3,84 +3,82 @@ defmodule NarouSpec do
 
   describe "Narou.init" do
     context "no option" do
-      subject do: Narou.init
+      let! :s, do: Narou.init
 
       # check common columns default value.
-      it do: is_expected() |> to(have type: :novel)
-      it do: is_expected() |> to(have out_type: :json)
-      it do: is_expected() |> to(have maximum_fetch_mode: false)
+      it do: expect s() |> to(have type: :novel)
+      it do: expect s() |> to(have out_type: :json)
+      it do: expect s() |> to(have maximum_fetch_mode: false)
     end
 
     context "bad param" do
-      subject do: Narou.init type: :hoge
-      it do: is_expected() |> to(be_error_result())
+      let :bad_type, do: Narou.init type: :hoge
+      it do: expect bad_type()            |> to(be_error_result())
     end
 
     context "type novel good" do
-      subject do: Narou.init type: :novel
+      let! :s,     do: Narou.init type: :novel
+      let :smin,   do: Narou.init type: :novel, limit: 1
+      let :smax,   do: Narou.init type: :novel, limit: 500, st: 2000
+      let :m_mode, do: Narou.init type: :novel, maximum_fetch_mode: true
 
-      it do: is_expected() |> to(have type:   :novel)
-      it do: is_expected() |> to(have limit:  20)
-      it do: is_expected() |> to(have st:     1)
-      it do: is_expected() |> to(have select: [])
-      it do: is_expected() |> to(have where:  %{})
-      it do: is_expected() |> to(have order:  :new)
+      it do: expect s()      |> to(have type:   :novel)
+      it do: expect s()      |> to(have limit:  20)
+      it do: expect s()      |> to(have st:     1)
+      it do: expect s()      |> to(have select: [])
+      it do: expect s()      |> to(have where:  %{})
+      it do: expect s()      |> to(have order:  :new)
+      it do: expect smin()   |> to(have limit:  1)
+      it do: expect smax()   |> to(have limit:  500)
+      it do: expect smax()   |> to(have st:     2000)
+      it do: expect m_mode() |> to(have maximum_fetch_mode: true)
+      it do: expect m_mode() |> to(have limit:  500)
     end
 
-    context "type novel good for min" do
-      subject do: Narou.init type: :novel, limit: 1
-      it do: is_expected() |> to(have limit: 1)
-    end
+    context "type novel bad" do
+      let! :min,            do: Narou.init type: :novel, limit: 0, st: 0
+      let :limit_error_mes, do: min() |> elem(1) |> Enum.at(0)
+      let :st_error_mes,    do: min() |> elem(1) |> Enum.at(1)
 
-    context "type novel good for max" do
-      subject do: Narou.init type: :novel, limit: 500, st: 2000
+      let! :over_max,         do: Narou.init type: :novel, limit: 501, st: 2001
+      let :limit_o_error_mes, do: over_max() |> elem(1) |> Enum.at(0)
+      let :st_o_error_mes,    do: over_max() |> elem(1) |> Enum.at(1)
 
-      it do: is_expected() |> to(have limit: 500)
-      it do: is_expected() |> to(have st:    2000)
-    end
+      it do: expect min()                          |> to(be_error_result())
+      it do: expect limit_error_mes()   |> elem(1) |> to(eq :limit)
+      it do: expect limit_error_mes()   |> elem(3) |> to(eq "must be a number greater than or equal to 1")
+      it do: expect st_error_mes()      |> elem(1) |> to(eq :st)
+      it do: expect st_error_mes()      |> elem(3) |> to(eq "must be a number greater than or equal to 1")
 
-    context "type novel good for maximum_fetch_mode" do
-      subject do: Narou.init type: :novel, maximum_fetch_mode: true
+      it do: expect over_max()                     |> to(be_error_result())
+      it do: expect limit_o_error_mes() |> elem(1) |> to(eq :limit)
+      it do: expect limit_o_error_mes() |> elem(3) |> to(eq "must be a number less than or equal to 500")
+      it do: expect st_o_error_mes()    |> elem(1) |> to(eq :st)
+      it do: expect st_o_error_mes()    |> elem(3) |> to(eq "must be a number less than or equal to 2000")
 
-      it do: is_expected() |> to(have maximum_fetch_mode: true)
-      it do: is_expected() |> to(have limit: 500)
-    end
-
-    context "type novel bad lower limit" do
-      subject do: Narou.init type: :novel, limit: 0, st: 0
-
-      it do: is_expected() |> to(match_pattern {:error, [{:error, :limit, :number, "must be a number greater than or equal to 1"}, _]})
-      it do: is_expected() |> to(match_pattern {:error, [_, {:error, :st, :number, "must be a number greater than or equal to 1"}]})
-    end
-
-    context "type novel bad over limit" do
-      subject do: Narou.init type: :novel, limit: 501, st: 2001
-
-      it do: is_expected() |> to(match_pattern {:error, [{:error, :limit, :number, "must be a number less than or equal to 500"}, _]})
-      it do: is_expected() |> to(match_pattern {:error, [_, {:error, :st, :number, "must be a number less than or equal to 2000"}]})
     end
 
     context "type rank good" do
-      subject do: Narou.init type: :rank
+      let! :s, do: Narou.init type: :rank
 
-      it do: is_expected() |> to(have type: :rank)
-      it do: is_expected() |> to(have where: %{y: 2013, m: 05, d: 01, t: :d})
+      it do: expect s() |> to(have type: :rank)
+      it do: expect s() |> to(have where: %{y: 2013, m: 05, d: 01, t: :d})
     end
 
     context "type rankin good" do
-      subject do: Narou.init type: :rankin
+      let! :s, do: Narou.init type: :rankin
 
-      it do: is_expected() |> to(have type: :rankin)
-      it do: is_expected() |> to(have where: %{ncode: "N0000A"})
+      it do: expect s() |> to(have type: :rankin)
+      it do: expect s() |> to(have where: %{ncode: "N0000A"})
     end
 
     context "type user good" do
-      subject do: Narou.init type: :user
+      let! :s,   do: Narou.init type: :user
 
-      it do: is_expected() |> to(have type:   :user)
-      it do: is_expected() |> to(have select: [])
-      it do: is_expected() |> to(have where:  %{})
-      it do: is_expected() |> to(have order:  :new)
+      it do: expect s()    |> to(have type:   :user)
+      it do: expect s()    |> to(have select: [])
+      it do: expect s()    |> to(have where:  %{})
+      it do: expect s()    |> to(have order:  :new)
     end
   end
 end

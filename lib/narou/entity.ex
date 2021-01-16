@@ -36,17 +36,21 @@ APIデータの共通処理。
 
       add_validate_cols = Keyword.get(validate_info, :validate) |> List.wrap()
 
-      validations =
-        [
-          [:st,     number:    [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]],
-          [:limit,  number:    [greater_than_or_equal_to: 1, less_than_or_equal_to: 500]],
-          [:order,  inclusion: validate_info[:validate_use_value][:order]],
-          [:select, by:        &valid_select?/1]
-        ]
+      if Enum.member?(add_validate_cols, :st) do
+        validates :st, number: [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]
+      end
 
-      Enum.each(validations, fn [key_name, opt] ->
-        if Enum.member?(add_validate_cols, key_name), do: validates(key_name, List.wrap(opt))
-      end)
+      if Enum.member?(add_validate_cols, :limit) do
+        validates :limit, number: [greater_than_or_equal_to: 1,less_than_or_equal_to: 500]
+      end
+
+      if Enum.member?(add_validate_cols, :order) do
+        validates :order, inclusion: Keyword.get(validate_info, :validate_use_value) |> Keyword.get(:order)
+      end
+
+      if Enum.member?(add_validate_cols, :select) do
+        validates :select, by: &valid_select?/1
+      end
 
       def __drop_keys__, do: [:__struct__, :maximum_fetch_mode]
       defoverridable __drop_keys__: 0
@@ -57,47 +61,78 @@ APIデータの共通処理。
   def init(opt) do
     {[type: type], opt} = Keyword.split(opt, [:type])
 
-    if type in api_types() do
-      gen_struct(type, opt) |> validate()
+    case type in api_types() do
+      false -> {:error, "Unexpected type `#{type}`."}
+      true  ->
+        gen_struct(type, opt)
+        |> initialized()
+    end
+  end
+
+  defp initialized(querable) do
+    querable
+    |> patch()
+    |> validate()
+  end
+
+  def init_or_update(type_sym_or_querable, opt) do
+    if is_symbol(type_sym_or_querable) do
+      init(opt ++ [type: type_sym_or_querable])
     else
-      {:error, "Unexpected type `#{type}`."}
+      type_sym_or_querable
+      |> Map.merge(Map.new(opt))
+      |> initialized()
     end
   end
 
   defp gen_struct(type, opt) do
-    to_submodule_name(type)
-    |> struct(type: type)
-    |> patch(opt)
+    to_submodule(type)
+    |> struct(opt ++ [type: type])
   end
 
-  defp to_submodule_name(type), do: Module.concat(__MODULE__, type |> to_string |> Macro.camelize |> String.to_atom)
-
-  defp patch(struct, opt), do: Enum.reduce([:st, :limit, :maximum_fetch_mode], struct, &do_patch(&1, &2, opt[&1]))
-
-  defp do_patch(:st,                 struct, st)    when is_integer(st),    do: %{struct | st: st}
-  defp do_patch(:limit,              struct, limit) when is_integer(limit), do: %{struct | limit: limit}
-  defp do_patch(:maximum_fetch_mode, struct, mode)  when is_boolean(mode) do
-    if(mode, do: %{struct | limit: 500}, else: struct) |> Map.merge(%{maximum_fetch_mode: mode})
+  defp to_submodule(type) do
+    ("#{__MODULE__}" <> "." <> ("#{type}" |> String.capitalize))
+    |> String.to_atom
   end
 
-  defp do_patch(:st,                 struct, _), do: struct
-  defp do_patch(:limit,              struct, _), do: struct
-  defp do_patch(:maximum_fetch_mode, struct, _), do: struct
+  defp patch(struct) do
+    struct
+    |> patch_for({:maximum_fetch_mode, Map.get(struct, :maximum_fetch_mode)})
+  end
 
-  @doc """
-      対応しているAPIタイプのリスト
+  defp patch_for(struct, {:maximum_fetch_mode, mode}) when is_boolean(mode) do
+    (if mode do
+      %{struct | limit: 500}
+    else
+      struct
+    end)
+    |> Map.merge(%{maximum_fetch_mode: mode})
+  end
+
+  defp patch_for(struct, _), do: struct
+
+@doc """
+  対応しているAPIタイプのリスト
   """
   @spec api_types() :: list(atom)
   def api_types(), do: [:novel, :rank, :rankin, :user]
 
-  @spec validate(map) :: {:ok, map} | {:error, {:error, any}}
-  def validate(s), do: if valid?(s), do: {:ok, s}, else: {:error, errors(s)}
+  @spec validate(map) :: map() | {:error, {:error, any}}
+  def validate(s) do
+    if valid?(s), do: s, else: {:error, errors(s)}
+  end
 
-  defp valid?(s) when is_struct(s), do: s.__struct__.valid?(s)
+  defp valid?(s) when is_struct(s) do
+    s.__struct__.valid?(s)
+  end
 
-  defp errors(s), do: Vex.errors(s)
+  defp errors(s) do
+    Vex.errors(s)
+  end
 
-  def valid_select?(cols), do: Enum.all?(cols, &Narou.Util.is_symbol?/1)
+  def valid_select?(cols) do
+    cols |> Enum.all?(&is_symbol/1)
+  end
 
-  def to_map_for_build_query(entity), do: Map.drop(entity, to_submodule_name(entity.type).__drop_keys__)
+  def to_map_for_build_query(entity), do: Map.drop(entity, to_submodule(entity.type).__drop_keys__)
 end

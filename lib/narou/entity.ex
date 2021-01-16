@@ -61,18 +61,22 @@ APIデータの共通処理。
   def init(opt) do
     {[type: type], opt} = Keyword.split(opt, [:type])
 
-    if type in api_types() do
-      gen_struct(type, opt)
-      |> initialized()
-    else
-      type_sym_or_querable
-      |> Map.merge(Map.new(opt))
-      |> initialized()
+    case type in api_types() do
+      false -> {:error, "Unexpected type `#{type}`."}
+      true  ->
+        gen_struct(type, opt)
+        |> initialized()
     end
   end
 
+  defp initialized(querable) do
+    querable
+    |> patch()
+    |> validate()
+  end
+
   def init_or_update(type_sym_or_querable, opt) do
-    if is_symbol?(type_sym_or_querable) do
+    if is_symbol(type_sym_or_querable) do
       init(opt ++ [type: type_sym_or_querable])
     else
       type_sym_or_querable
@@ -82,14 +86,8 @@ APIデータの共通処理。
   end
 
   defp gen_struct(type, opt) do
-    to_submodule_name(type)
-    |> struct([type: type] ++ opt)
-  end
-
-  defp initialized(querable) do
-    querable
-    |> patch()
-    |> validate()
+    to_submodule(type)
+    |> struct(opt ++ [type: type])
   end
 
   defp to_submodule(type) do
@@ -97,13 +95,21 @@ APIデータの共通処理。
     |> String.to_atom
   end
 
-  defp patch(struct), do: Enum.reduce([:maximum_fetch_mode], struct, &do_patch(&1, &2, Map.fetch!(struct, &1)))
-
-  defp do_patch(:maximum_fetch_mode, struct, mode)  when is_boolean(mode) do
-    if(mode, do: %{struct | limit: 500}, else: struct) |> Map.merge(%{maximum_fetch_mode: mode})
+  defp patch(struct) do
+    struct
+    |> patch_for({:maximum_fetch_mode, Map.get(struct, :maximum_fetch_mode)})
   end
 
-  defp do_patch(:maximum_fetch_mode, struct, _), do: struct
+  defp patch_for(struct, {:maximum_fetch_mode, mode}) when is_boolean(mode) do
+    (if mode do
+      %{struct | limit: 500}
+    else
+      struct
+    end)
+    |> Map.merge(%{maximum_fetch_mode: mode})
+  end
+
+  defp patch_for(struct, _), do: struct
 
 @doc """
   対応しているAPIタイプのリスト
@@ -111,8 +117,10 @@ APIデータの共通処理。
   @spec api_types() :: list(atom)
   def api_types(), do: [:novel, :rank, :rankin, :user]
 
-  @spec validate(struct()) :: struct() | {:error, [any()]}
-  def validate(s), do: if valid?(s), do: s, else: {:error, errors(s)}
+  @spec validate(map) :: map() | {:error, {:error, any}}
+  def validate(s) do
+    if valid?(s), do: s, else: {:error, errors(s)}
+  end
 
   defp valid?(s) when is_struct(s) do
     s.__struct__.valid?(s)

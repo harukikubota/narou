@@ -61,7 +61,12 @@ only import Narou.Query
 
     querable = Narou.Entity.init_or_update(type_sym_or_querable, init_opt)
 
-    Enum.reduce(query_opt, querable, fn {query, arg}, querable -> apply(__MODULE__, query, [querable, arg]) end)
+    Enum.reduce(
+      query_opt,
+      querable,
+      fn {query, arg}, querable ->
+        apply(__MODULE__, query, [querable, arg])
+      end)
   end
 
   @spec select(map, list) :: map | {:error, binary}

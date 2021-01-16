@@ -8,10 +8,10 @@ defmodule NarouEntitySpec do
       let :rankin, do: Narou.Entity.init(type: :rankin)
       let :user  , do: Narou.Entity.init(type: :user)
 
-      it do: expect novel()  |> to(match_pattern {:ok, %Narou.Entity.Novel{}})
-      it do: expect rank()   |> to(match_pattern {:ok, %Narou.Entity.Rank{}})
-      it do: expect rankin() |> to(match_pattern {:ok, %Narou.Entity.Rankin{}})
-      it do: expect user()   |> to(match_pattern {:ok, %Narou.Entity.User{}})
+      it do: expect novel()  |> to(match_pattern %Narou.Entity.Novel{})
+      it do: expect rank()   |> to(match_pattern %Narou.Entity.Rank{})
+      it do: expect rankin() |> to(match_pattern %Narou.Entity.Rankin{})
+      it do: expect user()   |> to(match_pattern %Narou.Entity.User{})
     end
 
     context "bad" do

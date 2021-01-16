@@ -36,17 +36,21 @@ APIデータの共通処理。
 
       add_validate_cols = Keyword.get(validate_info, :validate) |> List.wrap()
 
-      validations =
-        [
-          [:st,     number:    [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]],
-          [:limit,  number:    [greater_than_or_equal_to: 1, less_than_or_equal_to: 500]],
-          [:order,  inclusion: validate_info[:validate_use_value][:order]],
-          [:select, by:        &valid_select?/1]
-        ]
+      if Enum.member?(add_validate_cols, :st) do
+        validates :st, number: [greater_than_or_equal_to: 1, less_than_or_equal_to: 2000]
+      end
 
-      Enum.each(validations, fn [key_name, opt] ->
-        if Enum.member?(add_validate_cols, key_name), do: validates(key_name, List.wrap(opt))
-      end)
+      if Enum.member?(add_validate_cols, :limit) do
+        validates :limit, number: [greater_than_or_equal_to: 1,less_than_or_equal_to: 500]
+      end
+
+      if Enum.member?(add_validate_cols, :order) do
+        validates :order, inclusion: Keyword.get(validate_info, :validate_use_value) |> Keyword.get(:order)
+      end
+
+      if Enum.member?(add_validate_cols, :select) do
+        validates :select, by: &valid_select?/1
+      end
 
       def __drop_keys__, do: [:__struct__, :maximum_fetch_mode]
       defoverridable __drop_keys__: 0
@@ -61,7 +65,9 @@ APIデータの共通処理。
       gen_struct(type, opt)
       |> initialized()
     else
-      {:error, "Unexpected type `#{type}`."}
+      type_sym_or_querable
+      |> Map.merge(Map.new(opt))
+      |> initialized()
     end
   end
 
@@ -86,7 +92,10 @@ APIデータの共通処理。
     |> validate()
   end
 
-  defp to_submodule_name(type), do: Module.concat(__MODULE__, type |> to_string |> Macro.camelize |> String.to_atom)
+  defp to_submodule(type) do
+    ("#{__MODULE__}" <> "." <> ("#{type}" |> String.capitalize))
+    |> String.to_atom
+  end
 
   defp patch(struct), do: Enum.reduce([:maximum_fetch_mode], struct, &do_patch(&1, &2, Map.fetch!(struct, &1)))
 
@@ -96,8 +105,8 @@ APIデータの共通処理。
 
   defp do_patch(:maximum_fetch_mode, struct, _), do: struct
 
-  @doc """
-      対応しているAPIタイプのリスト
+@doc """
+  対応しているAPIタイプのリスト
   """
   @spec api_types() :: list(atom)
   def api_types(), do: [:novel, :rank, :rankin, :user]
@@ -105,11 +114,17 @@ APIデータの共通処理。
   @spec validate(struct()) :: struct() | {:error, [any()]}
   def validate(s), do: if valid?(s), do: s, else: {:error, errors(s)}
 
-  defp valid?(s) when is_struct(s), do: s.__struct__.valid?(s)
+  defp valid?(s) when is_struct(s) do
+    s.__struct__.valid?(s)
+  end
 
-  defp errors(s), do: Vex.errors(s)
+  defp errors(s) do
+    Vex.errors(s)
+  end
 
-  def valid_select?(cols), do: Enum.all?(cols, &Narou.Util.is_symbol?/1)
+  def valid_select?(cols) do
+    cols |> Enum.all?(&is_symbol/1)
+  end
 
-  def to_map_for_build_query(entity), do: Map.drop(entity, to_submodule_name(entity.type).__drop_keys__)
+  def to_map_for_build_query(entity), do: Map.drop(entity, to_submodule(entity.type).__drop_keys__)
 end

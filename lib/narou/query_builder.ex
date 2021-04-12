@@ -11,7 +11,7 @@ defmodule Narou.QueryBuilder do
   @spec build(map) :: binary
   def build(map) do
     Entity.to_map_for_build_query(map)
-    |> Enum.map(fn {k, v} -> convert_to_queries(Map.get(map, :type), k, v) end)
+    |> Enum.map(fn {k, v} -> convert_to_queries(map.type, k, v) end)
     |> Enum.flat_map(&List.wrap/1)
     |> to_query
   end
@@ -63,12 +63,11 @@ defmodule Narou.QueryBuilder do
   defp to_query(query_list) do
     {[_uri: uri], params} = Keyword.split(query_list, [:_uri])
 
-    query = params
-      |> Enum.map(&join_col/1)
-      |> drop_blank_val()
-      |> Enum.join(@col_delimita)
-
-    uri <> @query_start_str <> query
+    params
+    |> Enum.map(&join_col/1)
+    |> drop_blank_val()
+    |> Enum.join(@col_delimita)
+    |> then(&(uri <> @query_start_str <> &1))
   end
 
   defp join_col({key, val}) do

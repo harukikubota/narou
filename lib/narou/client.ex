@@ -14,7 +14,7 @@ defmodule Narou.Client do
   @spec run(%__MODULE__{}, binary) :: map
   def run(client, query) do
     Kernel.<>(client.endpoint, query)
-    |> (fn url -> Logger.debug "from Narou.Client request to `#{url}'"; url end).()
+    |> tap(&Logger.debug("from Narou.Client request to `#{&1}'"))
     |> send!
   end
 

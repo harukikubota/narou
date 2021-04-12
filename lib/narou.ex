@@ -96,7 +96,7 @@ defmodule Narou do
         fn -> fetch(opt) end
       end
 
-    simple_format!(strategy.(), Map.get(opt, :type))
+    simple_format!(strategy.(), opt.type)
   end
 
   defp maximum_fetch(struct), do: do_maximum_fetch(struct, 0, struct.limit)
@@ -111,15 +111,12 @@ defmodule Narou do
       |> fetch()
       |> Enum.split(1)
 
-    to_result = &(if index == 0, do: [count_record | &1], else: &1)
-
-    to_result.(
-      if length(fetch_result) < lm do
-        fetch_result
-      else
-        fetch_result ++ do_maximum_fetch(struct, index + 1, limit)
-      end
-    )
+    (if length(fetch_result) < lm do
+      fetch_result
+    else
+      fetch_result ++ do_maximum_fetch(struct, index + 1, limit)
+    end)
+    |> then(&(if index == 0, do: [count_record | &1], else: &1))
   end
 
   defp fetch(struct) do

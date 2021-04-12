@@ -21,7 +21,6 @@ defmodule Narou.Util do
   """
   @spec ncode_format() :: %Regex{}
   def ncode_format() do
-    #~r/\A[Nn][\d]{4}[A-Za-z]+\z/i
     ~r/\A[n][\d]{4}[a-z]+\z/i
   end
 
